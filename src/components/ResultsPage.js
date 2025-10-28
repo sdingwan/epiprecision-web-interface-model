@@ -315,14 +315,14 @@ const ResultsPage = () => {
           doc.text(clinicalNote, textX, textY);
         }
 
-        // AI Explanation area (below the heatmap image)
+        // Explanation area (below the heatmap image)
         const explanationX = heatmapImgX;
         let explanationY = heatmapImgY + heatmapImgSize + 8;
         
         doc.setFontSize(9);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(60, 60, 60);
-        doc.text('AI Analysis:', explanationX, explanationY);
+        doc.text('Explanation:', explanationX, explanationY);
         explanationY += 5;
 
         doc.setFont('helvetica', 'normal');
@@ -382,7 +382,27 @@ const ResultsPage = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 2 }}>
+    <Box
+      sx={{
+        minHeight: 'calc(100vh - 70px)',
+        display: 'flex',
+        alignItems: 'stretch',
+        bgcolor: '#0a0a0a',
+        py: 0,
+        width: '100%',
+        boxSizing: 'border-box'
+      }}
+    >
+      <Container
+        maxWidth="lg"
+        sx={{
+          py: { xs: 3, md: 4 },
+          display: 'flex',
+          flexDirection: 'column',
+          flexGrow: 1,
+          boxSizing: 'border-box'
+        }}
+      >
       {/* Header Section */}
       <Box sx={{ 
         background: '#1a1a1a',
@@ -823,7 +843,7 @@ const ResultsPage = () => {
                               <Grid item xs={12} md={6}>
                                 <Box>
                                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, fontWeight: 600 }}>
-                                    AI Explanation
+                                    Explanation
                                   </Typography>
                                   <Box
                                     component="textarea"
@@ -912,7 +932,8 @@ const ResultsPage = () => {
           )}
         </Box>
       </Dialog>
-    </Container>
+      </Container>
+    </Box>
   );
 };
 

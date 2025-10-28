@@ -11,13 +11,14 @@ import {
   Avatar, 
   Grid,
   Paper,
-  Divider
+  Divider,
+  Container,
+  Stack
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { 
   Logout, 
   Person, 
-  Biotech,
   LocalHospital,
   Security,
   CheckCircle,
@@ -82,174 +83,179 @@ const LandingPage = () => {
   };
 
   if (!userInfo) {
-    // User not logged in - show professional login prompt (dark themed)
+    // User not logged in - show refined hero layout
+    const heroFeatures = [
+      { icon: <CheckCircle sx={{ color: 'success.main' }} />, label: 'FDA-Compliant Processing' },
+      { icon: <Security sx={{ color: 'success.main' }} />, label: 'Secure Platform' },
+      { icon: <Psychology sx={{ color: 'success.main' }} />, label: 'AI-Powered Analysis' },
+      { icon: <Assessment sx={{ color: 'success.main' }} />, label: 'Clinical Integration' },
+    ];
+
     return (
-      <Box 
-        sx={{ 
-          minHeight: '100vh',
+      <Box
+        sx={{
+          minHeight: { xs: 'auto', md: 'calc(100vh - 70px)' },
+          height: { md: 'calc(100vh - 70px)' },
           bgcolor: '#0a0a0a',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          py: { xs: 2, md: 4 },
-          px: { xs: 2, md: 4 }
+          overflow: 'hidden',
+          py: { xs: 4, md: 0 }
         }}
       >
-        <Box
+        <Container
+          maxWidth="xl"
           sx={{
-            width: '100%',
-            maxWidth: 1500,
-            mx: 'auto',
-            px: { xs: 1, md: 2 },
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '1fr 540px' },
-            columnGap: { xs: 3, md: 6 },
-            rowGap: { xs: 4, md: 0 },
-            alignItems: 'center',
-            justifyContent: 'center',
-            justifyItems: { xs: 'stretch', md: 'center' }
+            flexGrow: 1,
+            height: { md: '100%' },
+            px: { xs: 3, sm: 6, md: 10 },
+            display: 'flex',
+            alignItems: 'center'
           }}
         >
-          {/* Left side - Branding and Info */}
-          <Box>
-            <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 4, justifyContent: { xs: 'center', md: 'flex-start' } }}>
-                <Biotech sx={{ fontSize: '3.2rem', color: '#00ffff', mr: 2.2 }} />
-                <Box>
-                  <Typography variant="h2" sx={{ fontWeight: 800, color: '#e0e0e0', letterSpacing: 0.5 }}>
-                    EpiPrecision
-                  </Typography>
-                  <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 600 }}>
-                    Advanced Medical Imaging Platform
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Typography variant="h4" sx={{ mb: 3, fontWeight: 800, color: '#e0e0e0' }}>
-                Precision Epilepsy Analysis Through AI-Powered Neuroimaging
-              </Typography>
-
-              <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary', lineHeight: 1.8, maxWidth: 900 }}>
-                State-of-the-art independent component analysis for identifying seizure onset zones 
-                with clinical-grade accuracy and reliability.
-              </Typography>
-
-              {/* Feature highlights */}
-              <Grid container spacing={1.5} sx={{ mb: 3 }}>
-                <Grid item xs={12} sm={6}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <CheckCircle sx={{ color: 'success.main', mr: 1.2, fontSize: '1.1rem' }} />
-                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                      FDA-Compliant Processing
+          <Grid container spacing={{ xs: 4, md: 6 }} alignItems="stretch">
+            {/* Left - Value Proposition */}
+            <Grid item xs={12} md={8} sx={{ display: 'flex' }}>
+              <Box sx={{ width: '100%', pr: { md: 4 }, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
+                  <Box
+                    sx={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: '50%',
+                      bgcolor: 'rgba(0,255,255,0.12)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <Psychology sx={{ fontSize: '2rem', color: '#00ffff' }} />
+                  </Box>
+                  <Box>
+                    <Typography variant="h3" sx={{ fontWeight: 800, color: '#e0e0e0', letterSpacing: 0.5 }}>
+                      EpiPrecision
+                    </Typography>
+                    <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 600 }}>
+                      Advanced Medical Imaging Platform
                     </Typography>
                   </Box>
-                </Grid>
-                                 <Grid item xs={12} sm={6}>
-                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                     <Security sx={{ color: 'success.main', mr: 1.2, fontSize: '1.1rem' }} />
-                     <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                       Secure Platform
-                     </Typography>
-                   </Box>
-                 </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Psychology sx={{ color: 'success.main', mr: 1.2, fontSize: '1.1rem' }} />
-                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                      AI-Powered Analysis
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Assessment sx={{ color: 'success.main', mr: 1.2, fontSize: '1.1rem' }} />
-                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                      Clinical Integration
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
+                </Stack>
 
-              <Divider sx={{ borderColor: '#333333', my: 2 }} />
-              <Typography variant="caption" color="text.secondary">
-                Trusted by clinicians and researchers for secure, compliant neuroimaging analysis
-              </Typography>
-            </Box>
-          </Box>
-          
-          {/* Right side - Login Card */}
-          <Box>
-            <Paper 
-              elevation={0}
-              sx={{ 
-                p: 4, 
-                borderRadius: 3,
-                background: '#1a1a1a',
-                border: '1px solid #333333',
-                boxShadow: '0 6px 20px rgba(0, 0, 0, 0.5)'
-              }}
-            >
-              <Box sx={{ textAlign: 'center', mb: 4 }}>
-                <Avatar 
-                  sx={{ 
-                    width: 56, 
-                    height: 56, 
-                    bgcolor: '#2a2a2a', 
-                    color: '#e0e0e0',
-                    mx: 'auto', 
-                    mb: 1.5,
-                    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.6)'
-                  }}
-                >
-                  <LocalHospital sx={{ fontSize: '1.5rem' }} />
-                </Avatar>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, color: '#e0e0e0' }}>
-                  Secure Access Portal
+                <Typography variant="h4" sx={{ mb: 3, fontWeight: 800, color: '#e0e0e0', lineHeight: 1.3 }}>
+                  Precision Epilepsy Analysis Through AI-Powered Neuroimaging
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Sign in to access advanced neuroimaging analysis tools
+
+                <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary', lineHeight: 1.8 }}>
+                  State-of-the-art independent component analysis to identify seizure onset zones with clinical-grade accuracy and reliability.
+                </Typography>
+
+                <Grid container spacing={2} sx={{ mb: 4 }}>
+                  {heroFeatures.map((feature, index) => (
+                    <Grid item xs={12} sm={6} key={index}>
+                      <Stack direction="row" spacing={1.5} alignItems="center">
+                        {feature.icon}
+                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                          {feature.label}
+                        </Typography>
+                      </Stack>
+                    </Grid>
+                  ))}
+                </Grid>
+
+                <Divider sx={{ borderColor: '#222222', maxWidth: 420, my: 3 }} />
+                <Typography variant="caption" color="text.secondary">
+                  Trusted by clinicians and researchers for secure, compliant neuroimaging analysis.
                 </Typography>
               </Box>
+            </Grid>
 
-              <Button
-                variant="outlined"
-                size="large"
-                fullWidth
-                onClick={() => navigate('/login')}
-                startIcon={<Person />}
-                sx={{ 
-                  py: 1.5,
-                  fontSize: '1.05rem',
-                  fontWeight: 700,
-                  borderRadius: 2,
-                  boxShadow: '0 0 8px 2px #00ffff55',
+            {/* Right - Login Card */}
+            <Grid item xs={12} md={4} sx={{ display: 'flex' }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: { xs: 4, md: 5 },
+                  borderRadius: 4,
+                  background: '#121212',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  boxShadow: '0 20px 45px rgba(0, 0, 0, 0.45)',
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column'
                 }}
               >
-                Sign In / Create Account
-              </Button>
-
-              <Divider sx={{ my: 2 }}>
-                <Typography variant="caption" color="text.secondary">
-                  Secure & Compliant
-                </Typography>
-              </Divider>
-
-              <Box sx={{ textAlign: 'center', mt: 3 }}>
-                <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.5 }}>
-                  This platform complies with FDA guidelines and medical data protection standards. 
-                  Your patient data is encrypted and secure.
-                </Typography>
-              </Box>
-            </Paper>
-          </Box>
-        </Box>
+                <Stack spacing={3} alignItems="center" sx={{ flexGrow: 1 }}>
+                  <Avatar
+                    sx={{
+                      width: 64,
+                      height: 64,
+                      bgcolor: 'rgba(0,255,255,0.12)',
+                      color: '#e0e0e0',
+                    }}
+                  >
+                    <LocalHospital sx={{ fontSize: '1.75rem' }} />
+                  </Avatar>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#e0e0e0' }}>
+                      Secure Access Portal
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Sign in to access advanced neuroimaging analysis tools.
+                    </Typography>
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    size="large"
+                    fullWidth
+                    onClick={() => navigate('/login')}
+                    startIcon={<Person />}
+                    sx={{
+                      py: 1.6,
+                      fontSize: '1.05rem',
+                      fontWeight: 700,
+                      borderRadius: 2,
+                      borderWidth: 2,
+                      borderColor: 'rgba(0,255,255,0.35)',
+                      color: '#e0e0e0',
+                      '&:hover': {
+                        borderColor: '#00ffff',
+                        boxShadow: '0 0 12px rgba(0,255,255,0.45)',
+                      }
+                    }}
+                  >
+                    Sign In / Create Account
+                  </Button>
+                  <Divider sx={{ width: '100%' }}>
+                    <Typography variant="caption" color="text.secondary">
+                      Secure & Compliant
+                    </Typography>
+                  </Divider>
+                  <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', lineHeight: 1.6 }}>
+                    The platform complies with FDA guidelines and medical data protection standards. Your patient data is encrypted and secure.
+                  </Typography>
+                </Stack>
+              </Paper>
+            </Grid>
+          </Grid>
+        </Container>
       </Box>
     );
   }
 
   // User is logged in - show main dashboard interface
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: '#0a0a0a', display: 'flex', flexDirection: 'column', alignItems: 'center', py: 6 }}>
+    <Box
+      sx={{
+        minHeight: 'calc(100vh - 70px)',
+        bgcolor: '#0a0a0a',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        py: { xs: 4, md: 6 },
+        boxSizing: 'border-box'
+      }}
+    >
       {/* User Welcome Section */}
       <Box sx={{ width: '100%', maxWidth: 1000, mb: 4 }}>
         <Card sx={{ background: '#1a1a1a', color: '#e0e0e0', borderRadius: 3, boxShadow: 4, border: '1px solid #333333' }}>

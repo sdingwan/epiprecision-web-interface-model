@@ -14,11 +14,11 @@ import {
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Person, 
-  Biotech,
   Dashboard,
   CloudUpload,
   Assessment,
-  Logout as LogoutIcon
+  Logout as LogoutIcon,
+  Psychology
 } from '@mui/icons-material';
 
 const Navbar = () => {
@@ -122,7 +122,7 @@ const Navbar = () => {
       <Toolbar sx={{ minHeight: 70 }}>
         {/* Logo and Brand */}
         <Box sx={{ display: 'flex', alignItems: 'center', mr: 4 }}>
-          <Biotech sx={{ fontSize: '2rem', mr: 1.5, color: '#ffffff' }} />
+          <Psychology sx={{ fontSize: '2rem', mr: 1.5, color: '#ffffff' }} />
           <Box>
             <Typography 
               variant="h6" 
