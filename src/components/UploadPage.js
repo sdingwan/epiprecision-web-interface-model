@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -45,6 +45,11 @@ const UploadPage = () => {
   console.log('UploadPage - existing uploadedFiles:', uploadedFiles);
   console.log('UploadPage - dataType from navigation:', dataType);
  
+  const isIcImage = (fileName = '') => {
+    const lower = fileName.toLowerCase();
+    return /ic_\d+/.test(lower) && /_thresh/.test(lower) && /(\.png|\.jpg|\.jpeg)$/.test(lower);
+  };
+
   const processFiles = (selectedFiles) => {
     // Filter out system files and hidden files
     const validFiles = selectedFiles.filter(file => {
@@ -75,6 +80,7 @@ const UploadPage = () => {
       blobUrl: URL.createObjectURL(file),
       originalFile: file,
       relativePath: file.webkitRelativePath || file.name,
+      isIc: isIcImage(file.name),
       dataType: dataType, // Use current dataType
     }));
     return processedFiles;
@@ -128,9 +134,9 @@ const UploadPage = () => {
   };
 
   const getFileCountMessage = (fileList) => {
-    if (fileList.length === 0) return `No new files selected`;
-    if (fileList.length === 1) return `1 new file selected`;
-    return `${fileList.length} new files selected`;
+    if (fileList.length === 0) return `No IC files detected in selection`;
+    if (fileList.length === 1) return `1 IC file ready for processing`;
+    return `${fileList.length} IC files ready for processing`;
   };
 
   const getTotalFileSize = (fileList) => {
@@ -225,6 +231,11 @@ const UploadPage = () => {
     });
   };
 
+  const icFiles = useMemo(() => {
+    const onlyIc = uploadedFiles.filter(file => file.isIc);
+    return sortFilesByICNumber(onlyIc);
+  }, [uploadedFiles]);
+
   return (
     <Box sx={{ minHeight: '80vh', p: 3 }}>
       <Grid container maxWidth="lg" spacing={4} sx={{ mx: 'auto' }}>
@@ -256,7 +267,7 @@ const UploadPage = () => {
           <Card sx={{ height: 'fit-content' }}>
             <CardContent sx={{ p: 4 }}>
               {/* Existing Files Display */}
-              {uploadedFiles.length > 0 && (
+              {icFiles.length > 0 && (
                 <Alert 
                   severity="success" 
                   sx={{ mb: 3 }}
@@ -272,14 +283,14 @@ const UploadPage = () => {
                   }
                 >
                   <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                    {uploadedFiles.length} file{uploadedFiles.length !== 1 ? 's' : ''} ready for processing
+                    {getFileCountMessage(icFiles)}
                   </Typography>
                   <Typography variant="body2">
-                    Total size: {getTotalFileSize(uploadedFiles)} MB
+                    Total size: {getTotalFileSize(icFiles)} MB
                   </Typography>
                   {/* Clinical context input for each file */}
                   <List dense sx={{ mt: 2, width: '100%' }}>
-                    {sortFilesByICNumber(uploadedFiles).map((file, idx) => (
+                    {icFiles.map((file, idx) => (
                       <ListItem key={file.id} alignItems="flex-start" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', mb: 2, width: '100%' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 2, mb: 1 }}>
                           {getFileIcon(file)}
@@ -326,6 +337,13 @@ const UploadPage = () => {
                       </ListItem>
                     ))}
                   </List>
+                </Alert>
+              )}
+
+              {uploadedFiles.length > 0 && icFiles.length === 0 && (
+                <Alert severity="info" sx={{ mb: 3 }}>
+                  We detected uploaded data but no IC threshold images (`IC_###_thresh.png`).
+                  Those are the only files shown here, although all selected files will still be staged for analysis.
                 </Alert>
               )}
 
