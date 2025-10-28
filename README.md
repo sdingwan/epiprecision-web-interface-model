@@ -71,6 +71,71 @@ Deployment is handled by the [`gh-pages`](https://github.com/tschaub/gh-pages) C
 
 ---
 
+## Python Analysis Pipeline
+
+The React application calls a Python helper pipeline (under `final/`) to drive the
+CNN + Knowledge Integrator workflow when a case is uploaded.
+
+### Install pipeline dependencies
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+> TensorFlow 2.20.0 is required and referenced in `requirements.txt`. The pinned
+> wheel works on Apple Silicon and x86 macOS 12+. Adjust the version if you are
+> targeting a different platform.
+
+### Running the pipeline manually
+
+```bash
+source venv/bin/activate
+export PYTHON_PATH="$PWD/venv/bin/python"   # used by src/setupProxy.js during npm start
+python final/pipeline.py
+```
+
+Inputs & outputs:
+
+| Item | Location |
+| --- | --- |
+| CNN SavedModel | `final/CNN_modelTrainedPCH/` (ignored in git – store separately) |
+| Subject report assets | Uploaded through the UI ➝ staged under `final/uploads/<case>-<timestamp>/` |
+| Workspace `.mat` | `Workspace-<CASE>IDV4.mat` in repo root (used automatically if not in the upload) |
+| Latest results | `final/pipeline_results.{csv,json}`, `final/predictions_{DL/KL}.csv`, `final/analysis_summary.json` |
+
+All generated artefacts are ignored by Git.
+
+---
+
+## Preparing the repository for GitHub
+
+1. **Clean transient files (optional but recommended)**
+   ```bash
+   rm -rf venv build final/uploads
+   rm -f final/pipeline_results.* final/predictions_*.csv final/analysis_summary.json
+   ```
+   The `.gitignore` already excludes these paths, so deleting them is only needed
+   if you want a pristine working tree.
+   Also keep the CNN SavedModel (`final/CNN_modelTrainedPCH/`) and any
+   `Workspace-*.mat` files outside of git or host them in object storage / LFS.
+2. **Commit your changes**
+   ```bash
+   git status
+   git add .
+   git commit -m "Prepare project for GitHub"
+   ```
+3. **Create the remote repository** on GitHub and connect:
+   ```bash
+   git remote add origin git@github.com:<your-org>/epiprecision-web-interface.git
+   git push -u origin main
+   ```
+4. Optional: run `npm run build` and, if desired, execute the Python pipeline to
+   verify the environment before pushing.
+
+---
+
 ## Project Structure
 ```
 src/

@@ -17,7 +17,6 @@ import {
   Biotech,
   Dashboard,
   CloudUpload,
-  Psychology,
   Assessment,
   Logout as LogoutIcon
 } from '@mui/icons-material';
@@ -83,27 +82,40 @@ const Navbar = () => {
     return location.pathname === path;
   };
 
-  const NavButton = ({ to, icon: Icon, label, isActive }) => (
-    <Button
-      color="inherit"
-      component={Link}
-      to={to}
-      startIcon={<Icon />}
-      sx={{
-        mx: 0.5,
-        px: 2,
-        py: 1,
-        borderRadius: 2,
-        bgcolor: isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
-        '&:hover': {
-          bgcolor: 'rgba(255, 255, 255, 0.1)',
-        },
-        transition: 'all 0.2s ease-in-out',
-      }}
-    >
-      {label}
-    </Button>
-  );
+  const NavButton = ({ to, icon: Icon, label, isActive, disabled = false }) => {
+    const handleClick = (event) => {
+      if (disabled) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+
+    return (
+      <Button
+        color="inherit"
+        component={Link}
+        to={disabled ? location.pathname : to}
+        startIcon={<Icon />}
+        onClick={handleClick}
+        sx={{
+          mx: 0.5,
+          px: 2,
+          py: 1,
+          borderRadius: 2,
+          bgcolor: isActive ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+          opacity: disabled ? 0.4 : 1,
+          pointerEvents: disabled ? 'none' : 'auto',
+          '&:hover': {
+            bgcolor: disabled ? 'transparent' : 'rgba(255, 255, 255, 0.1)',
+          },
+          transition: 'all 0.2s ease-in-out',
+        }}
+        disabled={disabled}
+      >
+        {label}
+      </Button>
+    );
+  };
 
   return (
     <AppBar position="static" elevation={0}>
@@ -154,12 +166,6 @@ const Navbar = () => {
               icon={CloudUpload} 
               label="Upload" 
               isActive={getActiveButton('/upload')}
-            />
-            <NavButton 
-              to="/processing" 
-              icon={Psychology} 
-              label="Processing" 
-              isActive={getActiveButton('/processing')}
             />
             <NavButton 
               to="/results" 

@@ -74,6 +74,7 @@ const UploadPage = () => {
       lastModified: file.lastModified,
       blobUrl: URL.createObjectURL(file),
       originalFile: file,
+      relativePath: file.webkitRelativePath || file.name,
       dataType: dataType, // Use current dataType
     }));
     return processedFiles;

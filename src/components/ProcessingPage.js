@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -9,9 +9,9 @@ import {
   Step, 
   StepLabel, 
   CircularProgress, 
-  Grid, 
   Paper, 
-  Avatar 
+  Avatar,
+  Alert
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useFiles } from '../App';
@@ -57,8 +57,15 @@ const CyanConnector = styled(StepConnector)(({ theme }) => ({
 const ProcessingPage = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const analysisStartedRef = useRef(false);
   const navigate = useNavigate();
-  const { uploadedFiles, distributeFiles } = useFiles();
+  const { 
+    uploadedFiles, 
+    distributeFiles,
+    analysisError,
+    analysisSummary,
+    isAnalyzing
+  } = useFiles();
   
   // Debug: log uploaded files
   console.log('ProcessingPage - uploadedFiles:', uploadedFiles);
@@ -75,19 +82,38 @@ const ProcessingPage = () => {
       const t = setTimeout(() => setActiveStep(2), 2000);
       return () => clearTimeout(t);
     }
-    if (activeStep === 2) {
-      setLoading(true);
-      const t = setTimeout(() => {
-        setActiveStep(3);
-        distributeFiles();
-        setLoading(false);
-      }, 1500);
-      return () => clearTimeout(t);
+    if (activeStep === 2 && !analysisStartedRef.current) {
+      analysisStartedRef.current = true;
+      const runAnalysis = async () => {
+        setLoading(true);
+        try {
+          await distributeFiles();
+          setActiveStep(3);
+        } catch (error) {
+          // Keep the user on the analysis step for retry
+          console.error('Analysis failed:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      runAnalysis();
     }
     if (activeStep === 3) {
       setLoading(false);
     }
   }, [activeStep, distributeFiles]);
+
+  useEffect(() => {
+    if (analysisError) {
+      // Allow retry when an error occurs
+      analysisStartedRef.current = false;
+    }
+  }, [analysisError]);
+
+  const handleRetry = () => {
+    analysisStartedRef.current = false;
+    setActiveStep(2);
+  };
 
   return (
     <Box sx={{ minHeight: '80vh', p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -160,44 +186,21 @@ const ProcessingPage = () => {
             {activeStep === 3 && (
               <>
                 <Typography sx={{ mb: 2 }}>You can now review and download your results.</Typography>
-                <Grid container spacing={2} sx={{ mt: 1, mb: 2 }}>
-                  <Grid item xs={4}>
-                    <Box sx={{
-                      bgcolor: '#1a1a1a',
-                      border: '2px solid #00ff99',
-                      borderRadius: 2,
-                      textAlign: 'center',
-                      color: '#00ff99',
-                      fontWeight: 600,
-                      py: 2
-                    }}>RSN</Box>
-                  </Grid>
-                  <Grid item xs={4}>
-                    <Box sx={{
-                      bgcolor: '#1a1a1a',
-                      border: '2px solid #ffff00',
-                      borderRadius: 2,
-                      textAlign: 'center',
-                      color: '#ffff00',
-                      fontWeight: 600,
-                      py: 2
-                    }}>Noise</Box>
-                  </Grid>
-                  <Grid item xs={4}>
-                    <Box sx={{
-                      bgcolor: '#1a1a1a',
-                      border: '2px solid #ff4d8b',
-                      borderRadius: 2,
-                      textAlign: 'center',
-                      color: '#ff4d8b',
-                      fontWeight: 600,
-                      py: 2
-                    }}>SOZ</Box>
-                  </Grid>
-                </Grid>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  {uploadedFiles.length} {uploadedFiles.length === 1 ? 'file has' : 'files have'} been distributed to the folders
-                </Typography>
+                {analysisSummary && (
+                  <Paper sx={{ p: 2, mb: 2, bgcolor: '#1a1a1a', border: '1px solid #333333', borderRadius: 2 }}>
+                    <Typography variant="body2" sx={{ color: '#e0e0e0', textAlign: 'center' }}>
+                      Patient Status: <strong>{analysisSummary.patientIsSoz ? 'SOZ Detected' : 'No SOZ Detected'}</strong>
+                    </Typography>
+                    <Typography variant="caption" display="block" sx={{ color: 'text.secondary', textAlign: 'center', mt: 1 }}>
+                      SOZ ICs: {analysisSummary.sozIcs && analysisSummary.sozIcs.length > 0 ? analysisSummary.sozIcs.join(', ') : 'None'}
+                    </Typography>
+                  </Paper>
+                )}
+                {analysisSummary && (
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {analysisSummary.totalComponents ?? 'All'} ICs analyzed and categorized. Noise/ SOZ folders reflect AI results.
+                  </Typography>
+                )}
                 <Button 
                   variant="contained" 
                   fullWidth 
@@ -209,8 +212,26 @@ const ProcessingPage = () => {
                 </Button>
               </>
             )}
-            {loading && <Box display="flex" justifyContent="center" mt={2}><CircularProgress /></Box>}
+            {(loading || isAnalyzing) && (
+              <Box display="flex" justifyContent="center" mt={2}>
+                <CircularProgress />
+              </Box>
+            )}
           </Box>
+
+          {analysisError && (
+            <Alert 
+              severity="error" 
+              sx={{ mt: 2 }}
+              action={
+                <Button color="inherit" size="small" onClick={handleRetry}>
+                  Retry
+                </Button>
+              }
+            >
+              {analysisError}
+            </Alert>
+          )}
         </CardContent>
       </Card>
     </Box>

@@ -16,7 +16,8 @@ import {
   Select,
   Paper,
   Avatar,
-  Container
+  Container,
+  Alert
 } from '@mui/material';
 import { 
   Close, 
@@ -33,7 +34,13 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
 const ResultsPage = () => {
-  const { folderData, processingComplete, uploadedFiles, setFolderData } = useFiles();
+  const { 
+    folderData, 
+    processingComplete, 
+    uploadedFiles, 
+    setFolderData,
+    analysisSummary 
+  } = useFiles();
   
   // Debug: log data
   console.log('ResultsPage - uploadedFiles:', uploadedFiles);
@@ -44,16 +51,6 @@ const ResultsPage = () => {
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
 
   const folders = [
-    {
-      id: 'rsn',
-      name: 'RSN',
-      color: '#e8f5e9',
-      borderColor: '#43a047',
-      description: 'Clusters on grey matter (Resting State Network)',
-      files: folderData?.rsn || [],
-      badgeColor: 'success',
-      icon: '✓'
-    },
     {
       id: 'noise',
       name: 'Noise', 
@@ -377,6 +374,13 @@ const ResultsPage = () => {
     });
   };
 
+  const formatPercentage = (value) => {
+    if (value === null || value === undefined) {
+      return '—';
+    }
+    return `${(value * 100).toFixed(1)}%`;
+  };
+
   return (
     <Container maxWidth="lg" sx={{ py: 2 }}>
       {/* Header Section */}
@@ -421,6 +425,16 @@ const ResultsPage = () => {
             </Button>
           </Box>
         )}
+        {processingComplete && analysisSummary && (
+          <Alert
+            severity={analysisSummary.patientIsSoz ? 'error' : 'success'}
+            sx={{ mt: 2 }}
+          >
+            {analysisSummary.patientIsSoz
+              ? `SOZ detected in ${analysisSummary.sozCount} of ${analysisSummary.totalComponents ?? uploadedFiles.length} ICs.`
+              : 'No SOZ components detected for this patient.'}
+          </Alert>
+        )}
       </Box>
 
       {processingComplete ? (
@@ -445,20 +459,23 @@ const ResultsPage = () => {
               <Grid item xs={12} md={4}>
                 <Box sx={{ textAlign: 'center' }}>
                   <Typography variant="h3" color="success.main" sx={{ fontWeight: 700 }}>
-                    {getTotalFileCount()}
+                    {analysisSummary?.totalComponents ?? getTotalFileCount()}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Files Processed
+                    ICs Analyzed
                   </Typography>
                 </Box>
               </Grid>
               <Grid item xs={12} md={4}>
                 <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="h3" color="info.main" sx={{ fontWeight: 700 }}>
-                    {folders.filter(f => f.files.length > 0).length}
+                  <Typography variant="h3" color="error.main" sx={{ fontWeight: 700 }}>
+                    {analysisSummary?.sozCount ?? 0}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Active Categories
+                    SOZ Components Identified
+                  </Typography>
+                  <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5 }}>
+                    Patient Status: {analysisSummary ? (analysisSummary.patientIsSoz ? 'SOZ Detected' : 'Clear') : 'Pending'}
                   </Typography>
                 </Box>
               </Grid>
@@ -595,6 +612,8 @@ const ResultsPage = () => {
               <Grid container spacing={2}>
                 {sortFilesByICNumber(selectedFolder.files).map((file) => {
                   const imagePreview = createImagePreview(file);
+                  const analysis = file.analysisDetails || {};
+                  const isSoz = Boolean(analysis.isSoz);
                   return (
                     <Grid item xs={12} key={file.id}>
                       <Paper 
@@ -656,6 +675,65 @@ const ResultsPage = () => {
                                     </Box>
                                   </MenuItem>
                                 </Select>
+                              </Box>
+                            </Box>
+                          </Grid>
+
+                          {/* Analysis Details */}
+                          <Grid item xs={12}>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: 2,
+                                p: 2,
+                                borderRadius: 2,
+                                border: '1px solid #444444',
+                                backgroundColor: '#111111'
+                              }}
+                            >
+                              <Box>
+                                <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                  DL Label
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 600, color: '#e0e0e0' }}>
+                                  {analysis.dlLabel !== null && analysis.dlLabel !== undefined ? analysis.dlLabel : '—'}
+                                </Typography>
+                              </Box>
+                              <Box>
+                                <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                  Knowledge Prediction
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 600, color: '#e0e0e0' }}>
+                                  {analysis.klPrediction !== null && analysis.klPrediction !== undefined ? analysis.klPrediction : '—'}
+                                </Typography>
+                              </Box>
+                              <Box>
+                                <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                  P(class 3)
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 600, color: '#e0e0e0' }}>
+                                  {formatPercentage(analysis.probClass3)}
+                                </Typography>
+                              </Box>
+                              <Box>
+                                <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                  Decision
+                                </Typography>
+                                <Chip 
+                                  label={isSoz ? 'SOZ' : 'Not SOZ'} 
+                                  color={isSoz ? 'error' : 'success'} 
+                                  size="small"
+                                  sx={{ fontWeight: 600 }}
+                                />
+                              </Box>
+                              <Box sx={{ flexBasis: '100%' }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                                  Pipeline Reason
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: '#e0e0e0' }}>
+                                  {analysis.reason || '—'}
+                                </Typography>
                               </Box>
                             </Box>
                           </Grid>

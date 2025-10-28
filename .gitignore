@@ -4,3 +4,15 @@ build/
 dist/
 .env
 .DS_Store
+venv/
+__pycache__/
+*.pyc
+
+# Pipeline outputs & uploads
+final/uploads/
+final/pipeline_results.csv
+final/pipeline_results.json
+final/analysis_summary.json
+final/predictions_*.csv
+final/CNN_modelTrainedPCH/
+Workspace-*.mat
