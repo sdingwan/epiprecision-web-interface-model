@@ -235,6 +235,8 @@ const UploadPage = () => {
     const onlyIc = uploadedFiles.filter(file => file.isIc);
     return sortFilesByICNumber(onlyIc);
   }, [uploadedFiles]);
+  const icCount = icFiles.length;
+  const hasIcFiles = icCount > 0;
 
   return (
     <Box sx={{ minHeight: '80vh', p: 3 }}>
@@ -444,10 +446,10 @@ const UploadPage = () => {
               </Grid>
 
               {/* File Count Display */}
-              {uploadedFiles.length > 0 && (
+              {hasIcFiles && (
                 <Box sx={{ mb: 3, mt: 2 }}>
                   <Chip 
-                    label={getFileCountMessage(uploadedFiles)} 
+                    label={getFileCountMessage(icFiles)} 
                     sx={{
                       fontSize: '0.9rem',
                       fontWeight: 600,
@@ -484,10 +486,10 @@ const UploadPage = () => {
               )}
 
               {/* File List (show first 10 and summary) */}
-              {uploadedFiles.length > 0 && !uploading && (
+              {icFiles.length > 0 && !uploading && (
                 <Paper sx={{ p: 3, mb: 3, bgcolor: '#1a1a1a', border: '1px solid #333333' }}>
                   <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#00ffff' }}>
-                    New Files Ready ({uploadedFiles.length} total - {getTotalFileSize(uploadedFiles)} MB)
+                    IC Files Ready ({icFiles.length} total - {getTotalFileSize(icFiles)} MB)
                   </Typography>
                   <Box sx={{ 
                     maxHeight: 200, 
@@ -497,7 +499,7 @@ const UploadPage = () => {
                     bgcolor: '#222'
                   }}>
                     <List dense>
-                      {sortFilesByICNumber(uploadedFiles).slice(0, 10).map((file, idx) => (
+                      {icFiles.slice(0, 10).map((file, idx) => (
                         <ListItem key={idx} sx={{ py: 1, borderBottom: '1px solid #f5f5f5' }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 2 }}>
                             {getFileIcon({ ...file, dataType })}
@@ -512,10 +514,10 @@ const UploadPage = () => {
                           </Box>
                         </ListItem>
                       ))}
-                      {uploadedFiles.length > 10 && (
+                      {icFiles.length > 10 && (
                         <ListItem sx={{ py: 1, bgcolor: '#222' }}>
                           <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                            ... and {uploadedFiles.length - 10} more files
+                            ... and {icFiles.length - 10} more IC files
                           </Typography>
                         </ListItem>
                       )}
@@ -530,13 +532,13 @@ const UploadPage = () => {
                 size="large"
                 fullWidth
                 onClick={() => navigate('/processing')}
-                disabled={(files.length === 0 && uploadedFiles.length === 0) || uploading}
+                disabled={!hasIcFiles || uploading}
                 sx={{
                   py: 1.5,
                   fontSize: '1rem',
                   backgroundColor: '#1a1a1a',
                   color: '#e0e0e0',
-                  border: (files.length > 0 || uploadedFiles.length > 0) && !uploading ? '2px solid #00ffff' : '2px solid #333333',
+                  border: hasIcFiles && !uploading ? '2px solid #00ffff' : '2px solid #333333',
                   boxShadow: 'none',
                   fontWeight: 600,
                   borderRadius: 2,
@@ -549,15 +551,11 @@ const UploadPage = () => {
                   },
                 }}
               >
-                {uploading 
-                  ? 'Uploading...' 
-                  : (files.length === 0 && uploadedFiles.length === 0)
-                    ? 'Select Files to Continue'
-                    : uploadedFiles.length > 0 && files.length === 0
-                      ? `Begin Analysis with ${uploadedFiles.length} ${uploadedFiles.length === 1 ? `${dataType} File` : `${dataType} Files`}`
-                      : files.length === 1
-                        ? `Begin Analysis with 1 New ${dataType} File`
-                        : `Begin Analysis with ${files.length} New ${dataType} Files`
+                {uploading
+                  ? 'Uploading...'
+                  : hasIcFiles
+                    ? `Begin Analysis with ${icCount} ${icCount === 1 ? `${dataType} File` : `${dataType} Files`}`
+                    : 'Select IC threshold files to continue'
                 }
               </Button>
             </CardContent>
