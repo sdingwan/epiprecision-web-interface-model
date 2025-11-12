@@ -15,22 +15,29 @@ import {
   Container,
   Stack
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Logout, 
   Person, 
-  LocalHospital,
   Security,
   CheckCircle,
   MedicalServices,
   Psychology,
-  Assessment
+  Assessment,
+  KeyboardArrowDown
 } from '@mui/icons-material';
 
 const LandingPage = () => {
   const [dataType, setDataType] = useState('MRI');
   const [userInfo, setUserInfo] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   const checkLoginStatus = () => {
     const isLoggedIn = localStorage.getItem('userLoggedIn');
@@ -62,6 +69,19 @@ const LandingPage = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (location.state?.scrollTo) {
+      const targetId = location.state.scrollTo;
+      const element = document.getElementById(targetId);
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 50);
+      }
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
+
   const handleLogout = () => {
     localStorage.removeItem('userLoggedIn');
     localStorage.removeItem('userEmail');
@@ -83,75 +103,136 @@ const LandingPage = () => {
   };
 
   if (!userInfo) {
-    // User not logged in - show refined hero layout
+    // User not logged in - show hero plus scrollable story sections
     const heroFeatures = [
       { icon: <CheckCircle sx={{ color: 'success.main' }} />, label: 'FDA-Compliant Processing' },
       { icon: <Security sx={{ color: 'success.main' }} />, label: 'Secure Platform' },
       { icon: <Psychology sx={{ color: 'success.main' }} />, label: 'AI-Powered Analysis' },
-      { icon: <Assessment sx={{ color: 'success.main' }} />, label: 'Clinical Integration' },
+      { icon: <Assessment sx={{ color: 'success.main' }} />, label: 'Clinical Integration' }
+    ];
+
+    const evaluationBarriers = [
+      { title: 'Weeks Waiting in EMU', detail: 'Two weeks of sleep-deprived monitoring before surgery is even discussed.' },
+      { title: 'High Cost Burden', detail: '$150K+ spent per patient, often before a decision is made.' },
+      { title: 'Limited Access', detail: 'Too few Level 4 centers force families to travel and disrupt their lives.' },
+      { title: 'Inconclusive Answers', detail: 'Even after invasive monitoring, many patients still lack clear SOZ answers.' }
+    ];
+
+    const solutionHighlights = [
+      {
+        title: 'Clinically Validated',
+        detail: 'DeepXS0Z matched gold-standard localization in 352 patients (ages 3 months–62 years) with 91% precision and 89% accuracy.'
+      },
+      {
+        title: 'Efficiency Boost',
+        detail: 'Delivers a 7× reduction in neurosurgical review effort versus manual workflows.'
+      },
+      {
+        title: 'Cost Advantage',
+        detail: 'A resting-state fMRI scan replaces weeks of costly EEG/SEEG admissions.'
+      }
+    ];
+
+    const impactAudiences = [
+      {
+        title: 'Patients',
+        bullets: [
+          'Faster answers with lower risk and burden',
+          'Real hope for seizure freedom through early localization'
+        ]
+      },
+      {
+        title: 'Providers',
+        bullets: [
+          'Frees EMU beds and staff with streamlined evaluations',
+          'Increases surgical throughput with clearer candidates'
+        ]
+      },
+      {
+        title: 'Payors',
+        bullets: [
+          'Saves tens of thousands per patient',
+          'Replaces prolonged hospitalizations with a non-invasive pathway'
+        ]
+      }
+    ];
+
+    const workflowSteps = [
+      { label: 'Capture resting-state MRI', detail: 'Patients complete a simple resting-state fMRI scan, with or without sedation.' },
+      { label: 'Independent Component Analysis', detail: 'DeepXS0Z separates neural signals from noise and resting networks.' },
+      { label: 'Deep Learning Sorting', detail: 'AI prioritizes 15–20 candidate ICs most likely to reflect seizure onset zones.' },
+      { label: 'Expert Review & Report', detail: 'Clinicians validate, generate the SOZ map, and hand off for surgical planning.' }
     ];
 
     return (
-      <Box
-        sx={{
-          minHeight: { xs: 'auto', md: 'calc(100vh - 70px)' },
-          height: { md: 'calc(100vh - 70px)' },
-          bgcolor: '#0a0a0a',
-          display: 'flex',
-          alignItems: 'center',
-          overflow: 'hidden',
-          py: { xs: 4, md: 0 }
-        }}
-      >
-        <Container
-          maxWidth="xl"
+      <Box sx={{ bgcolor: '#050505', color: '#e0e0e0' }}>
+        <Box
+          component="section"
+          id="home"
           sx={{
-            flexGrow: 1,
-            height: { md: '100%' },
-            px: { xs: 3, sm: 6, md: 10 },
+            minHeight: { xs: 'auto', md: 'calc(100vh - 70px)' },
             display: 'flex',
-            alignItems: 'center'
+            alignItems: 'center',
+            py: { xs: 6, md: 8 },
+            position: 'relative',
+            overflow: 'hidden',
+            background: 'radial-gradient(circle at 20% 20%, rgba(0,255,255,0.12), transparent 55%)',
+            borderBottom: '1px solid rgba(255,255,255,0.05)',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(120deg, rgba(0,0,0,0.4), rgba(0,0,0,0))',
+              pointerEvents: 'none'
+            }
           }}
         >
-          <Grid container spacing={{ xs: 4, md: 6 }} alignItems="stretch">
-            {/* Left - Value Proposition */}
-            <Grid item xs={12} md={8} sx={{ display: 'flex' }}>
-              <Box sx={{ width: '100%', pr: { md: 4 }, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
-                  <Box
-                    sx={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: '50%',
-                      bgcolor: 'rgba(0,255,255,0.12)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <Psychology sx={{ fontSize: '2rem', color: '#00ffff' }} />
-                  </Box>
-                  <Box>
-                    <Typography variant="h3" sx={{ fontWeight: 800, color: '#e0e0e0', letterSpacing: 0.5 }}>
-                      EpiPrecision
-                    </Typography>
-                    <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 600 }}>
-                      Advanced Medical Imaging Platform
-                    </Typography>
-                  </Box>
-                </Stack>
+          <Container
+            maxWidth="xl"
+            sx={{
+              flexGrow: 1,
+              px: { xs: 3, sm: 6, md: 10 }
+            }}
+          >
+            <Grid container spacing={{ xs: 4, md: 6 }} alignItems="stretch">
+              {/* Left - Value Proposition */}
+              <Grid item xs={12} md={8} sx={{ display: 'flex' }}>
+                <Box sx={{ width: '100%', pr: { md: 4 }, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
+                    <Box
+                      sx={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: '50%',
+                        bgcolor: 'rgba(0,255,255,0.12)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <Psychology sx={{ fontSize: '2rem', color: '#00ffff' }} />
+                    </Box>
+                    <Box>
+                      <Typography variant="h3" sx={{ fontWeight: 800, color: '#e0e0e0', letterSpacing: 0.5 }}>
+                        EpiPrecision
+                      </Typography>
+                      <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 600 }}>
+                        Advanced Medical Imaging Platform
+                      </Typography>
+                    </Box>
+                  </Stack>
 
-                <Typography variant="h4" sx={{ mb: 3, fontWeight: 800, color: '#e0e0e0', lineHeight: 1.3 }}>
-                  Precision Epilepsy Analysis Through AI-Powered Neuroimaging
-                </Typography>
+                  <Typography variant="h4" sx={{ mb: 3, fontWeight: 800, color: '#e0e0e0', lineHeight: 1.3 }}>
+                    Precision Epilepsy Analysis Through AI-Powered Neuroimaging
+                  </Typography>
 
                 <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary', lineHeight: 1.8 }}>
-                  State-of-the-art independent component analysis to identify seizure onset zones with clinical-grade accuracy and reliability.
+                  DeepXS0Z decodes seizures with AI-powered maps, rewiring hope with surgical precision while keeping patient journeys non-invasive.
                 </Typography>
 
                 <Grid container spacing={2} sx={{ mb: 4 }}>
                   {heroFeatures.map((feature, index) => (
-                    <Grid item xs={12} sm={6} key={index}>
+                    <Grid item xs={12} sm={6} key={feature.label}>
                       <Stack direction="row" spacing={1.5} alignItems="center">
                         {feature.icon}
                         <Typography variant="body1" sx={{ fontWeight: 600 }}>
@@ -167,78 +248,315 @@ const LandingPage = () => {
                   Trusted by clinicians and researchers for secure, compliant neuroimaging analysis.
                 </Typography>
               </Box>
-            </Grid>
+              </Grid>
 
-            {/* Right - Login Card */}
-            <Grid item xs={12} md={4} sx={{ display: 'flex' }}>
-              <Paper
-                elevation={0}
-                sx={{
-                  p: { xs: 4, md: 5 },
-                  borderRadius: 4,
-                  background: '#121212',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  boxShadow: '0 20px 45px rgba(0, 0, 0, 0.45)',
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}
-              >
-                <Stack spacing={3} alignItems="center" sx={{ flexGrow: 1 }}>
-                  <Avatar
-                    sx={{
-                      width: 64,
-                      height: 64,
-                      bgcolor: 'rgba(0,255,255,0.12)',
-                      color: '#e0e0e0',
-                    }}
-                  >
-                    <LocalHospital sx={{ fontSize: '1.75rem' }} />
-                  </Avatar>
-                  <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#e0e0e0' }}>
-                      Secure Access Portal
+              {/* Right - Login Card */}
+              <Grid item xs={12} md={4} sx={{ display: 'flex' }}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: { xs: 4, md: 5 },
+                    borderRadius: 4,
+                    background: '#121212',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    boxShadow: '0 20px 45px rgba(0, 0, 0, 0.45)',
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                >
+                  <Stack spacing={3} alignItems="center" sx={{ flexGrow: 1 }}>
+                    <Avatar
+                      sx={{
+                        width: 64,
+                        height: 64,
+                        bgcolor: 'rgba(0,255,255,0.12)',
+                        color: '#00ffff',
+                        border: '2px solid rgba(0,255,255,0.35)'
+                      }}
+                    >
+                      <Psychology sx={{ fontSize: '1.9rem' }} />
+                    </Avatar>
+                    <Box sx={{ textAlign: 'center' }}>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#e0e0e0' }}>
+                        Secure Access Portal
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Sign in to access advanced neuroimaging analysis tools.
+                      </Typography>
+                    </Box>
+                    <Button
+                      variant="outlined"
+                      size="large"
+                      fullWidth
+                      onClick={() => navigate('/login')}
+                      startIcon={<Person />}
+                      sx={{
+                        py: 1.6,
+                        fontSize: '1.05rem',
+                        fontWeight: 700,
+                        borderRadius: 2,
+                        borderWidth: 2,
+                        borderColor: 'rgba(0,255,255,0.35)',
+                        color: '#e0e0e0',
+                        '&:hover': {
+                          borderColor: '#00ffff',
+                          boxShadow: '0 0 12px rgba(0,255,255,0.45)'
+                        }
+                      }}
+                    >
+                      Sign In / Create Account
+                    </Button>
+                    <Divider sx={{ width: '100%' }}>
+                      <Typography variant="caption" color="text.secondary">
+                        Secure & Compliant
+                      </Typography>
+                    </Divider>
+                    <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', lineHeight: 1.6 }}>
+                      The platform complies with FDA guidelines and medical data protection standards. Your patient data is encrypted and secure.
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Sign in to access advanced neuroimaging analysis tools.
-                    </Typography>
-                  </Box>
-                  <Button
-                    variant="outlined"
-                    size="large"
-                    fullWidth
-                    onClick={() => navigate('/login')}
-                    startIcon={<Person />}
-                    sx={{
-                      py: 1.6,
-                      fontSize: '1.05rem',
-                      fontWeight: 700,
-                      borderRadius: 2,
-                      borderWidth: 2,
-                      borderColor: 'rgba(0,255,255,0.35)',
-                      color: '#e0e0e0',
-                      '&:hover': {
-                        borderColor: '#00ffff',
-                        boxShadow: '0 0 12px rgba(0,255,255,0.45)',
-                      }
-                    }}
-                  >
-                    Sign In / Create Account
-                  </Button>
-                  <Divider sx={{ width: '100%' }}>
-                    <Typography variant="caption" color="text.secondary">
-                      Secure & Compliant
-                    </Typography>
-                  </Divider>
-                  <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', lineHeight: 1.6 }}>
-                    The platform complies with FDA guidelines and medical data protection standards. Your patient data is encrypted and secure.
+                  </Stack>
+                </Paper>
+              </Grid>
+            </Grid>
+          </Container>
+          <Box
+            role="button"
+            tabIndex={0}
+            onClick={() => scrollToSection('missed-opportunity')}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                scrollToSection('missed-opportunity');
+              }
+            }}
+            sx={{
+              position: 'absolute',
+              bottom: 24,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              display: { xs: 'none', sm: 'flex' },
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 0.35,
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.75)',
+              textTransform: 'uppercase',
+              fontSize: '0.65rem',
+              opacity: 0.85,
+              transition: 'opacity 0.2s ease',
+              '&:hover': { opacity: 1 },
+              '&:focus-visible': {
+                outline: '2px solid #00ffff',
+                outlineOffset: 4,
+                opacity: 1
+              }
+            }}
+          >
+            <Typography variant="caption" sx={{ fontWeight: 600 }}>
+              Scroll Down
+            </Typography>
+            <KeyboardArrowDown sx={{ fontSize: 24 }} />
+          </Box>
+        </Box>
+
+        <Box component="section" id="missed-opportunity" sx={{ borderTop: '1px solid #111', borderBottom: '1px solid #111', py: { xs: 6, md: 8 } }}>
+          <Container maxWidth="lg">
+            <Grid container spacing={4} alignItems="stretch">
+              <Grid item xs={12} md={5}>
+                <Typography variant="overline" sx={{ color: '#00ffff', letterSpacing: 2 }}>
+                  The Missed Opportunity
+                </Typography>
+                <Typography variant="h5" sx={{ fontWeight: 700, mt: 1, mb: 2 }}>
+                  Over 1M people live with drug-resistant epilepsy, yet fewer than 4,000 surgeries happen each year.
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  That means more than 996,000 people are waiting because pre-surgical evaluation remains the real barrier.
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={7}>
+                <Grid container spacing={2}>
+                  {evaluationBarriers.map((item) => (
+                    <Grid item xs={12} sm={6} key={item.title}>
+                      <Paper
+                        sx={{
+                          height: '100%',
+                          p: 2.5,
+                          borderRadius: 3,
+                          bgcolor: '#0f0f0f',
+                          border: '1px solid rgba(255,255,255,0.06)'
+                        }}
+                      >
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+                          {item.title}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {item.detail}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Grid>
+            </Grid>
+          </Container>
+        </Box>
+
+        <Container component="section" id="about" maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
+          <Typography variant="overline" sx={{ color: '#00ffff', letterSpacing: 2 }}>
+            A Smarter Path Forward
+          </Typography>
+          <Typography variant="h4" sx={{ fontWeight: 800, my: 2 }}>
+            DeepXS0Z combines AI with resting-state fMRI to non-invasively localize the seizure onset zone.
+          </Typography>
+          <Grid container spacing={3}>
+            {solutionHighlights.map((item) => (
+              <Grid item xs={12} md={4} key={item.title}>
+                <Paper
+                  sx={{
+                    height: '100%',
+                    p: 3,
+                    borderRadius: 3,
+                    bgcolor: '#0f0f0f',
+                    border: '1px solid rgba(255,255,255,0.08)'
+                  }}
+                >
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
+                    {item.title}
                   </Typography>
-                </Stack>
-              </Paper>
+                  <Typography variant="body2" color="text.secondary">
+                    {item.detail}
+                  </Typography>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+
+        <Box component="section" sx={{ bgcolor: '#070707', py: { xs: 6, md: 8 } }}>
+          <Container maxWidth="lg">
+            <Typography variant="overline" sx={{ color: '#00ffff', letterSpacing: 2 }}>
+              Impact Across the Continuum
+            </Typography>
+            <Grid container spacing={3} sx={{ mt: 2 }}>
+              {impactAudiences.map((audience) => (
+                <Grid item xs={12} md={4} key={audience.title}>
+                  <Paper
+                    sx={{
+                      height: '100%',
+                      p: 3,
+                      borderRadius: 3,
+                      bgcolor: '#101010',
+                      border: '1px solid rgba(255,255,255,0.06)'
+                    }}
+                  >
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                      {audience.title}
+                    </Typography>
+                    <Stack spacing={1}>
+                      {audience.bullets.map((bullet) => (
+                        <Typography key={bullet} variant="body2" color="text.secondary">
+                          • {bullet}
+                        </Typography>
+                      ))}
+                    </Stack>
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+          </Container>
+        </Box>
+
+        <Container component="section" maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
+          <Typography variant="overline" sx={{ color: '#00ffff', letterSpacing: 2 }}>
+            How It Works
+          </Typography>
+          <Grid container spacing={4} sx={{ mt: 1 }}>
+            <Grid item xs={12} md={6}>
+              <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
+                From scan to SOZ map with four streamlined steps.
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                DeepXS0Z merges deep learning with expert review, so what once required weeks of invasive tests now begins with a widely available MRI.
+              </Typography>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Stack spacing={3}>
+                {workflowSteps.map((step, index) => (
+                  <Box
+                    key={step.label}
+                    sx={{
+                      display: 'flex',
+                      gap: 2,
+                      alignItems: 'flex-start'
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: '50%',
+                        border: '1px solid rgba(0,255,255,0.4)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 700
+                      }}
+                    >
+                      {index + 1}
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                        {step.label}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {step.detail}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
+              </Stack>
             </Grid>
           </Grid>
         </Container>
+
+        <Box component="section" id="contact" sx={{ bgcolor: '#070707', py: { xs: 6, md: 8 } }}>
+          <Container maxWidth="md">
+            <Paper
+              sx={{
+                p: { xs: 4, md: 5 },
+                borderRadius: 4,
+                bgcolor: '#101010',
+                border: '1px solid rgba(255,255,255,0.08)'
+              }}
+            >
+              <Typography variant="overline" sx={{ color: '#00ffff', letterSpacing: 2 }}>
+                Contact Us
+              </Typography>
+              <Typography variant="h5" sx={{ fontWeight: 800, mt: 1, mb: 2 }}>
+                info@epiprecision.tech | www.epiprecision.tech
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                4539 N 22nd St, Phoenix, Arizona, 85016, US | smitta53@asu.edu
+              </Typography>
+              <Button
+                variant="contained"
+                size="large"
+                fullWidth
+                onClick={() => (window.location.href = 'mailto:info@epiprecision.tech')}
+                sx={{
+                  bgcolor: '#00aaaa',
+                  color: '#0a0a0a',
+                  fontWeight: 700,
+                  '&:hover': { bgcolor: '#00c2c2' }
+                }}
+              >
+                Start a Conversation
+              </Button>
+            </Paper>
+          </Container>
+        </Box>
       </Box>
     );
   }

@@ -82,6 +82,27 @@ const Navbar = () => {
     return location.pathname === path;
   };
 
+  const scrollToSection = (sectionId) => {
+    const performScroll = () => {
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+
+    if (location.pathname !== '/') {
+      navigate('/', { state: { scrollTo: sectionId } });
+    } else {
+      performScroll();
+    }
+  };
+
+  const sectionLinks = [
+    { label: 'Home', target: 'home' },
+    { label: 'About', target: 'about' },
+    { label: 'Contact', target: 'contact' }
+  ];
+
   const NavButton = ({ to, icon: Icon, label, isActive, disabled = false }) => {
     const handleClick = (event) => {
       if (disabled) {
@@ -144,7 +165,7 @@ const Navbar = () => {
                 letterSpacing: '0.5px'
               }}
             >
-              MEDICAL IMAGING PLATFORM
+              Decoding seizures with AI-powered maps and rewiring hope with surgical precision
         </Typography>
           </Box>
         </Box>
@@ -255,27 +276,54 @@ const Navbar = () => {
             </Menu>
           </Box>
         ) : (
-          // User not logged in - show login button only
-          <Button
-            color="inherit"
-            component={Link}
-            to="/login"
-            variant="outlined"
-            startIcon={<Person />}
-            sx={{ 
-              borderColor: 'rgba(255, 255, 255, 0.5)',
-              borderWidth: '1.5px',
-              borderRadius: 2,
-              px: 3,
-              py: 1,
-              '&:hover': { 
-                borderColor: 'rgba(255, 255, 255, 0.8)',
-                bgcolor: 'rgba(255, 255, 255, 0.1)'
-              }
-            }}
-          >
-            Sign In
-          </Button>
+          // User not logged in - show marketing navigation + login button
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, mr: 2 }}>
+              {sectionLinks.map((link) => (
+                <Button
+                  key={link.target}
+                  color="inherit"
+                  onClick={() => scrollToSection(link.target)}
+                  sx={{
+                    mx: 0.5,
+                    px: 2,
+                    py: 0.5,
+                    borderRadius: 999,
+                    fontSize: '0.9rem',
+                    textTransform: 'none',
+                    color: 'rgba(255,255,255,0.85)',
+                    border: '1px solid transparent',
+                    '&:hover': {
+                      borderColor: 'rgba(255,255,255,0.4)',
+                      bgcolor: 'rgba(255,255,255,0.08)'
+                    }
+                  }}
+                >
+                  {link.label}
+                </Button>
+              ))}
+            </Box>
+            <Button
+              color="inherit"
+              component={Link}
+              to="/login"
+              variant="outlined"
+              startIcon={<Person />}
+              sx={{ 
+                borderColor: 'rgba(255, 255, 255, 0.5)',
+                borderWidth: '1.5px',
+                borderRadius: 2,
+                px: 3,
+                py: 1,
+                '&:hover': { 
+                  borderColor: 'rgba(255, 255, 255, 0.8)',
+                  bgcolor: 'rgba(255, 255, 255, 0.1)'
+                }
+              }}
+            >
+              Sign In
+            </Button>
+          </Box>
         )}
       </Toolbar>
     </AppBar>

@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, CssBaseline, Container } from '@mui/material';
+import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import theme from './theme';
 import Navbar from './components/Navbar';
 import LandingPage from './components/LandingPage';
@@ -252,17 +252,17 @@ function App() {
       <CssBaseline />
       <FileProvider>
         <Router basename={basename}>
-      <Navbar />
-      <Container maxWidth="xl" sx={{ mt: 4 }}>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/upload" element={<UploadPage />} />
-          <Route path="/processing" element={<ProcessingPage />} />
-          <Route path="/results" element={<ResultsPage />} />
-        </Routes>
-      </Container>
-    </Router>
+          <Navbar />
+          <Box component="main" sx={{ width: '100%' }}>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/upload" element={<UploadPage />} />
+              <Route path="/processing" element={<ProcessingPage />} />
+              <Route path="/results" element={<ResultsPage />} />
+            </Routes>
+          </Box>
+        </Router>
       </FileProvider>
     </ThemeProvider>
   );
