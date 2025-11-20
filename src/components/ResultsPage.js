@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -17,7 +17,9 @@ import {
   Paper,
   Avatar,
   Container,
-  Alert
+  Alert,
+  TextField,
+  DialogActions
 } from '@mui/material';
 import { 
   Close, 
@@ -26,8 +28,10 @@ import {
   HighlightOff,
   Download,
   Assessment,
-  FolderSpecial,
-  KeyboardArrowDown
+  KeyboardArrowDown,
+  PsychologyAlt,
+  ReportProblemRounded,
+  WarningAmber
 } from '@mui/icons-material';
 import { useFiles } from '../App';
 import jsPDF from 'jspdf';
@@ -49,8 +53,23 @@ const ResultsPage = () => {
   const [selectedFolderId, setSelectedFolderId] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [imagePreviewUrl, setImagePreviewUrl] = useState(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareEmail, setShareEmail] = useState('');
+  const [shareMessage, setShareMessage] = useState('');
+  const [shareError, setShareError] = useState('');
 
   const folders = [
+    {
+      id: 'rsn',
+      name: 'RSN',
+      color: '#e3f2fd',
+      borderColor: '#64b5f6',
+      description: 'Resting-state networks and non-pathologic components',
+      files: folderData?.rsn || [],
+      badgeColor: 'info',
+      Icon: PsychologyAlt,
+      iconColor: '#1976d2'
+    },
     {
       id: 'noise',
       name: 'Noise', 
@@ -59,7 +78,8 @@ const ResultsPage = () => {
       description: 'Small clusters on white matter and brain periphery',
       files: folderData?.noise || [],
       badgeColor: 'warning',
-      icon: '⚠'
+      Icon: ReportProblemRounded,
+      iconColor: '#f57f17'
     },
     {
       id: 'soz',
@@ -69,7 +89,8 @@ const ResultsPage = () => {
       description: 'Large cluster on both grey and white matter (Seizure Onset Zone)',
       files: folderData?.soz || [],
       badgeColor: 'error',
-      icon: '!'
+      Icon: WarningAmber,
+      iconColor: '#c62828'
     }
   ];
 
@@ -374,11 +395,63 @@ const ResultsPage = () => {
     });
   };
 
-  const formatPercentage = (value) => {
-    if (value === null || value === undefined) {
-      return '—';
+  const patientStatus = analysisSummary
+    ? analysisSummary.patientIsSoz
+      ? { label: 'SOZ Detected', color: 'error', helper: 'Patient flagged for seizure onset review' }
+      : { label: 'Clear', color: 'success', helper: 'No SOZ components identified' }
+    : { label: 'Pending Analysis', color: 'default', helper: 'Run analysis to determine status' };
+
+  const summaryMetrics = [
+    {
+      label: 'Files Uploaded',
+      value: uploadedFiles.length,
+      helper: 'Clinician curated dataset'
+    },
+    {
+      label: 'ICs Analyzed',
+      value: analysisSummary?.totalComponents ?? getTotalFileCount(),
+      helper: 'Independent components processed'
+    },
+    {
+      label: 'SOZ Components',
+      value: analysisSummary?.sozCount ?? 0,
+      helper: patientStatus.helper
     }
-    return `${(value * 100).toFixed(1)}%`;
+  ];
+
+  const shareSummary = useMemo(() => {
+    const totalReviewed = analysisSummary?.totalComponents ?? getTotalFileCount();
+    const soz = analysisSummary?.sozCount ?? 0;
+    const statusText = analysisSummary
+      ? analysisSummary.patientIsSoz
+        ? 'SOZ detected'
+        : 'No SOZ detected'
+      : 'Analysis pending';
+    return `Files processed: ${uploadedFiles.length}\nICs analyzed: ${totalReviewed}\nSOZ components: ${soz}\nPatient status: ${statusText}`;
+  }, [analysisSummary, uploadedFiles.length, folderData]);
+
+  const defaultShareMessage = useMemo(() => (
+    `Hi colleague,\n\nI'm sharing the latest EpiPrecision analysis results for review.\n\n${shareSummary}\n\nPlease see the attached PDF or open the clinician portal for full detail.\n\nThanks.`
+  ), [shareSummary]);
+
+  const openShareDialog = () => {
+    setShareEmail('');
+    setShareError('');
+    setShareMessage(defaultShareMessage);
+    setShareDialogOpen(true);
+  };
+
+  const handleShareSend = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(shareEmail)) {
+      setShareError('Enter a valid email address.');
+      return;
+    }
+    const subject = 'EpiPrecision Analysis Results';
+    const body = `${shareMessage}\n\nSummary:\n${shareSummary}`;
+    const mailtoLink = `mailto:${encodeURIComponent(shareEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailtoLink, '_blank');
+    setShareDialogOpen(false);
   };
 
   return (
@@ -404,104 +477,107 @@ const ResultsPage = () => {
         }}
       >
       {/* Header Section */}
-      <Box sx={{ 
-        background: '#1a1a1a',
-        border: '1px solid #333333',
-        borderRadius: 3,
-        p: 2,
-        mb: 3,
-        color: '#e0e0e0'
-      }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <Avatar sx={{ bgcolor: '#2a2a2a', color: '#e0e0e0', width: 48, height: 48 }}>
-            <Assessment fontSize="large" />
-          </Avatar>
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, color: '#e0e0e0' }}>
-              Analysis Results
-            </Typography>
-            <Typography variant="subtitle1" sx={{ opacity: 0.9, color: '#e0e0e0' }}>
-              AI-powered categorization complete
-            </Typography>
-          </Box>
-        </Box>
-        
-        {processingComplete && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-            <Typography variant="body1" sx={{ opacity: 0.9, color: '#e0e0e0' }}>
-              {uploadedFiles.length} files processed and categorized
-            </Typography>
-            <Button 
-              variant="contained" 
-              sx={{ 
-                                  bgcolor: '#2a2a2a', 
-                  color: '#e0e0e0',
-                  '&:hover': { bgcolor: '#333333' }
-              }}
-              startIcon={<Download />}
-              onClick={handleDownloadPDF}
-            >
-              Download Report
-            </Button>
-          </Box>
-        )}
-        {processingComplete && analysisSummary && (
-          <Alert
-            severity={analysisSummary.patientIsSoz ? 'error' : 'success'}
-            sx={{ mt: 2 }}
+        <Box sx={{ 
+          background: '#1a1a1a',
+          border: '1px solid #333333',
+          borderRadius: 3,
+          p: { xs: 2, md: 3 },
+          mb: 3,
+          color: '#e0e0e0'
+        }}>
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              flexWrap: 'wrap', 
+              gap: 2,
+              alignItems: 'center',
+              mb: 2
+            }}
           >
-            {analysisSummary.patientIsSoz
-              ? `SOZ detected in ${analysisSummary.sozCount} of ${analysisSummary.totalComponents ?? uploadedFiles.length} ICs.`
-              : 'No SOZ components detected for this patient.'}
-          </Alert>
-        )}
-      </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar sx={{ bgcolor: '#2a2a2a', color: '#e0e0e0', width: 48, height: 48 }}>
+                <Assessment fontSize="large" />
+              </Avatar>
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, color: '#e0e0e0' }}>
+                  Analysis Results
+                </Typography>
+                <Typography variant="subtitle1" sx={{ opacity: 0.9, color: '#e0e0e0' }}>
+                  AI-powered categorization complete
+                </Typography>
+              </Box>
+            </Box>
+            {processingComplete && (
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button 
+                  variant="outlined" 
+                  sx={{ 
+                    borderColor: '#4fc3f7',
+                    color: '#4fc3f7',
+                    '&:hover': { borderColor: '#81d4fa', color: '#81d4fa' }
+                  }}
+                  onClick={openShareDialog}
+                >
+                  Share via Email
+                </Button>
+                <Button 
+                  variant="contained" 
+                  sx={{ 
+                    bgcolor: '#2a2a2a', 
+                    color: '#e0e0e0',
+                    '&:hover': { bgcolor: '#333333' }
+                  }}
+                  startIcon={<Download />}
+                  onClick={handleDownloadPDF}
+                >
+                  Download Report
+                </Button>
+              </Box>
+            )}
+          </Box>
+          
+          {processingComplete ? (
+            <>
+              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+                {uploadedFiles.length} files processed • {analysisSummary?.totalComponents ?? getTotalFileCount()} ICs analyzed
+              </Typography>
+              <Grid container spacing={2}>
+                {summaryMetrics.map((metric) => (
+                  <Grid item xs={12} md={4} key={metric.label}>
+                    <Paper 
+                      elevation={0} 
+                      sx={{ 
+                        p: 2,
+                        bgcolor: '#111',
+                        border: '1px solid #222',
+                        borderRadius: 2,
+                        textAlign: 'center'
+                      }}
+                    >
+                      <Typography variant="h4" sx={{ fontWeight: 700, color: '#e0e0e0' }}>
+                        {metric.value}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#b0b0b0', fontWeight: 600 }}>
+                        {metric.label}
+                      </Typography>
+                      <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary' }}>
+                        {metric.helper}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              Upload patient data to view categorized ICs.
+            </Typography>
+          )}
+        </Box>
 
       {processingComplete ? (
         <>
-          {/* Summary Stats */}
-          <Paper sx={{ p: 2, mb: 3, borderRadius: 2 }}>
-            <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <FolderSpecial sx={{ color: '#e0e0e0' }} />
-              Processing Summary
-            </Typography>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={4}>
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="h3" sx={{ fontWeight: 700, color: '#e0e0e0' }}>
-                    {uploadedFiles.length}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Files Uploaded
-                  </Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="h3" color="success.main" sx={{ fontWeight: 700 }}>
-                    {analysisSummary?.totalComponents ?? getTotalFileCount()}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    ICs Analyzed
-                  </Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="h3" color="error.main" sx={{ fontWeight: 700 }}>
-                    {analysisSummary?.sozCount ?? 0}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    SOZ Components Identified
-                  </Typography>
-                  <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5 }}>
-                    Patient Status: {analysisSummary ? (analysisSummary.patientIsSoz ? 'SOZ Detected' : 'Clear') : 'Pending'}
-                  </Typography>
-                </Box>
-              </Grid>
-            </Grid>
-          </Paper>
-
           {/* Folder Categories */}
           <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
             File Categories
@@ -538,7 +614,9 @@ const ResultsPage = () => {
                           border: `2px solid ${folder.borderColor}`
                         }}
                       >
-                        {folder.icon}
+                        {folder.Icon && (
+                          <folder.Icon sx={{ fontSize: 28, color: folder.iconColor || folder.borderColor }} />
+                        )}
                       </Avatar>
                     </Badge>
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
@@ -570,6 +648,45 @@ const ResultsPage = () => {
           </Typography>
         </Paper>
       )}
+
+      {/* Share via Email Dialog */}
+      <Dialog open={shareDialogOpen} onClose={() => setShareDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Share Results via Email</DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          {shareError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {shareError}
+            </Alert>
+          )}
+          <TextField
+            label="Recipient Email"
+            fullWidth
+            value={shareEmail}
+            onChange={(e) => {
+              setShareEmail(e.target.value);
+              if (shareError) setShareError('');
+            }}
+            sx={{ mb: 2 }}
+            type="email"
+          />
+          <TextField
+            label="Message"
+            fullWidth
+            multiline
+            minRows={4}
+            value={shareMessage}
+            onChange={(e) => setShareMessage(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setShareDialogOpen(false)} color="inherit">
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={handleShareSend}>
+            Compose Email
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Folder Contents Dialog */}
       <Dialog 
@@ -626,7 +743,6 @@ const ResultsPage = () => {
             borderRadius: 3,
             p: 2,
             minHeight: 180,
-            border: `2px solid ${selectedFolder?.borderColor}`,
           }}>
             {selectedFolder && selectedFolder.files && selectedFolder.files.length > 0 ? (
               <Grid container spacing={2}>
@@ -695,65 +811,6 @@ const ResultsPage = () => {
                                     </Box>
                                   </MenuItem>
                                 </Select>
-                              </Box>
-                            </Box>
-                          </Grid>
-
-                          {/* Analysis Details */}
-                          <Grid item xs={12}>
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: 2,
-                                p: 2,
-                                borderRadius: 2,
-                                border: '1px solid #444444',
-                                backgroundColor: '#111111'
-                              }}
-                            >
-                              <Box>
-                                <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                                  DL Label
-                                </Typography>
-                                <Typography variant="body1" sx={{ fontWeight: 600, color: '#e0e0e0' }}>
-                                  {analysis.dlLabel !== null && analysis.dlLabel !== undefined ? analysis.dlLabel : '—'}
-                                </Typography>
-                              </Box>
-                              <Box>
-                                <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                                  Knowledge Prediction
-                                </Typography>
-                                <Typography variant="body1" sx={{ fontWeight: 600, color: '#e0e0e0' }}>
-                                  {analysis.klPrediction !== null && analysis.klPrediction !== undefined ? analysis.klPrediction : '—'}
-                                </Typography>
-                              </Box>
-                              <Box>
-                                <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                                  P(class 3)
-                                </Typography>
-                                <Typography variant="body1" sx={{ fontWeight: 600, color: '#e0e0e0' }}>
-                                  {formatPercentage(analysis.probClass3)}
-                                </Typography>
-                              </Box>
-                              <Box>
-                                <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                                  Decision
-                                </Typography>
-                                <Chip 
-                                  label={isSoz ? 'SOZ' : 'Not SOZ'} 
-                                  color={isSoz ? 'error' : 'success'} 
-                                  size="small"
-                                  sx={{ fontWeight: 600 }}
-                                />
-                              </Box>
-                              <Box sx={{ flexBasis: '100%' }}>
-                                <Typography variant="caption" color="text.secondary" sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                                  Pipeline Reason
-                                </Typography>
-                                <Typography variant="body2" sx={{ color: '#e0e0e0' }}>
-                                  {analysis.reason || '—'}
-                                </Typography>
                               </Box>
                             </Box>
                           </Grid>

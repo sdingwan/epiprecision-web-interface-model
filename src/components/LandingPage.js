@@ -116,6 +116,72 @@ const LandingPage = () => {
     }
   };
 
+  const dataTypeOptions = [
+    {
+      value: 'MRI',
+      title: 'MRI (Magnetic Resonance Imaging)',
+      description: 'High-resolution structural and functional brain imaging',
+      helper: 'Best for structural localization',
+      icon: MedicalServices
+    },
+    {
+      value: 'EEG',
+      title: 'EEG (Electroencephalography)',
+      description: 'Electrical activity monitoring for seizure detection',
+      helper: 'Captures neural oscillations',
+      icon: Psychology
+    },
+    {
+      value: 'PET',
+      title: 'PET (Positron Emission Tomography)',
+      description: 'Metabolic brain imaging for functional analysis',
+      helper: 'Highlights metabolic asymmetries',
+      icon: Assessment
+    }
+  ];
+
+  const getModalityInsights = (type) => {
+    switch (type) {
+      case 'EEG':
+        return [
+          'Ideal for acute monitoring of seizure onset patterns.',
+          'Upload ICA time-course exports and IC overlays for AI triage.',
+          'Recommended bundle: 1–2 GB CSV/MAT datasets.'
+        ];
+      case 'PET':
+        return [
+          'Useful when MRI is inconclusive or metabolic correlation is required.',
+          'Bundle NIfTI, DICOM, or fused PET/MRI exports for best alignment.',
+          'Typical study: 50–150 slices; ensure consistent voxel sizes.'
+        ];
+      default:
+        return [
+          'Preferred modality for resting-state SOZ localization.',
+          'Upload 100–200 IC threshold images plus supporting report files.',
+          'Pair with Workspace-<case>V4.mat for reproducible analysis.'
+        ];
+    }
+  };
+
+  const selectedOption = dataTypeOptions.find((option) => option.value === dataType) || dataTypeOptions[0];
+  const highlightCards = [
+    {
+      label: 'Active Modality',
+      value: selectedOption?.value || dataType,
+      helper: selectedOption?.helper
+    },
+    {
+      label: 'Workflow Stage',
+      value: 'Data Selection',
+      helper: 'Choose a dataset to unlock upload + processing'
+    },
+    {
+      label: 'Session Status',
+      value: 'Clinician Secure',
+      helper: 'Encrypted workspace active'
+    }
+  ];
+
   if (!userInfo) {
     // User not logged in - show hero plus scrollable story sections
     const heroFeatures = [
@@ -606,201 +672,247 @@ const LandingPage = () => {
   return (
     <Box
       sx={{
+        position: 'relative',
         minHeight: 'calc(100vh - 70px)',
-        bgcolor: '#0a0a0a',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
+        width: '100%',
+        overflow: 'hidden',
+        bgcolor: '#040404',
         py: { xs: 4, md: 6 },
-        boxSizing: 'border-box'
+        px: { xs: 2, md: 4 }
       }}
     >
-      {/* User Welcome Section */}
-      <Box sx={{ width: '100%', maxWidth: 1000, mb: 4 }}>
-        <Card sx={{ background: '#1a1a1a', color: '#e0e0e0', borderRadius: 3, boxShadow: 4, border: '1px solid #333333' }}>
-          <CardContent sx={{ p: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                <Avatar 
-                  sx={{ 
-                    width: 48, 
-                    height: 48, 
-                    bgcolor: '#2a2a2a',
-                    fontSize: '1.2rem',
-                    fontWeight: 600,
-                    color: '#e0e0e0',
-                    border: '2px solid #333333'
-                  }}
-                >
-                  {userInfo.name.charAt(0).toUpperCase()}
-                </Avatar>
-                <Box>
-                  <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, color: '#e0e0e0' }}>
-                    Welcome back, {userInfo.name}
-                  </Typography>
-                  <Typography variant="body1" sx={{ color: 'rgba(224, 224, 224, 0.95)', mb: 0.5 }}>
-                    {userInfo.email}
-                  </Typography>
-                </Box>
-              </Box>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<Logout />}
-                onClick={handleLogout}
-                sx={{ 
-                  fontWeight: 600,
-                  px: 2,
-                  py: 0.5,
-                  minWidth: 0,
-                }}
-              >
-                Sign Out
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
-      </Box>
+      <Box
+        aria-hidden
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          background: 'radial-gradient(circle at 20% 20%, rgba(0,255,255,0.25), transparent 45%), radial-gradient(circle at 80% 0%, rgba(0,128,255,0.18), transparent 40%)',
+          filter: 'blur(90px)',
+          opacity: 0.8
+        }}
+      />
+      <Box
+        aria-hidden
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0.05) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.05) 100%)',
+          opacity: 0.2
+        }}
+      />
 
-      {/* Main Analysis Section - Centered, wide, and with whitespace */}
-      <Box sx={{ width: '100%', maxWidth: 1000, mx: 'auto' }}>
-        <Card sx={{ width: '100%', p: 3, boxShadow: 6, borderRadius: 4, bgcolor: '#1a1a1a' }}>
-          <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <MedicalServices sx={{ fontSize: '1.5rem', color: '#e0e0e0', mr: 1.5 }} />
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                Neuroimaging Analysis
-              </Typography>
-            </Box>
-
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 2, lineHeight: 1.5 }}>
-                Select your data type to begin advanced independent component analysis 
-                for precise seizure onset zone identification.
-              </Typography>
-
-            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-              Select Data Type
-            </Typography>
-            
-            <RadioGroup
-              value={dataType}
-              onChange={e => setDataType(e.target.value)}
-              sx={{ mb: 2 }}
-            >
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-              <Paper 
-                className={dataType === 'MRI' ? 'neon-selected' : ''}
-                sx={{ 
-                  p: 1.5, 
-                  mb: 1.5, 
-                  border: dataType === 'MRI' ? '2px solid #00ffff' : '1px solid #333333',
-                  borderRadius: 2,
-                  bgcolor: dataType === 'MRI' ? '#2a2a2a' : 'transparent',
-                  color: dataType === 'MRI' ? '#00ffff' : '#e0e0e0',
-                  boxShadow: dataType === 'MRI' ? '0 0 8px 2px #00ffff55' : 'none',
-                  transition: 'border-color 0.2s, box-shadow 0.2s, color 0.2s',
-                }}
-              >
-                <FormControlLabel 
-                  value="MRI" 
-                  control={<Radio />} 
-                  label={
-                    <Box>
-                      <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                        MRI (Magnetic Resonance Imaging)
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        High-resolution structural and functional brain imaging
-                      </Typography>
-                    </Box>
-                  }
-                />
-              </Paper>
-                </Grid>
-                <Grid item xs={12}>
-              <Paper 
-                className={dataType === 'EEG' ? 'neon-selected' : ''}
-                sx={{ 
-                  p: 1.5, 
-                  mb: 1.5, 
-                  border: dataType === 'EEG' ? '2px solid #00ffff' : '1px solid #333333',
-                  borderRadius: 2,
-                  bgcolor: dataType === 'EEG' ? '#2a2a2a' : 'transparent',
-                  color: dataType === 'EEG' ? '#00ffff' : '#e0e0e0',
-                  boxShadow: dataType === 'EEG' ? '0 0 8px 2px #00ffff55' : 'none',
-                  transition: 'border-color 0.2s, box-shadow 0.2s, color 0.2s',
-                }}
-              >
-                <FormControlLabel 
-                  value="EEG" 
-                  control={<Radio />} 
-                  label={
-                    <Box>
-                      <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                        EEG (Electroencephalography)
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Electrical activity monitoring for seizure detection
-                      </Typography>
-                    </Box>
-                  }
-                />
-              </Paper>
-                </Grid>
-                <Grid item xs={12}>
-              <Paper 
-                className={dataType === 'PET' ? 'neon-selected' : ''}
-                sx={{ 
-                  p: 1.5, 
-                  mb: 1.5, 
-                  border: dataType === 'PET' ? '2px solid #00ffff' : '1px solid #333333',
-                  borderRadius: 2,
-                  bgcolor: dataType === 'PET' ? '#2a2a2a' : 'transparent',
-                  color: dataType === 'PET' ? '#00ffff' : '#e0e0e0',
-                  boxShadow: dataType === 'PET' ? '0 0 8px 2px #00ffff55' : 'none',
-                  transition: 'border-color 0.2s, box-shadow 0.2s, color 0.2s',
-                }}
-              >
-                <FormControlLabel 
-                  value="PET" 
-                  control={<Radio />} 
-                  label={
-                    <Box>
-                      <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                        PET (Positron Emission Tomography)
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Metabolic brain imaging for functional analysis
-                      </Typography>
-                    </Box>
-                  }
-                />
-              </Paper>
-                </Grid>
-              </Grid>
-            </RadioGroup>
-
-            <Button
-              variant="contained"
-              size="medium"
-              fullWidth
-              onClick={handleProceed}
-              sx={{ 
-                py: 1.5,
-                fontSize: '1rem',
-                fontWeight: 600,
-                borderRadius: 2,
-                mt: 2,
-                backgroundColor: '#2a2a2a',
+      <Box sx={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 1200, mx: 'auto' }}>
+        <Grid container spacing={4}>
+          <Grid item xs={12}>
+            <Card
+              sx={{
+                background: 'linear-gradient(135deg, rgba(10,10,10,0.95) 0%, rgba(20,20,20,0.85) 100%)',
                 color: '#e0e0e0',
-                '&:hover': { backgroundColor: '#333333' }
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 4,
+                boxShadow: '0 20px 80px rgba(0,0,0,0.55)'
               }}
             >
-              Begin {dataType} Analysis Workflow
-            </Button>
-          </CardContent>
-        </Card>
+              <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', gap: 3 }}>
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                    <Avatar
+                      sx={{
+                        width: 60,
+                        height: 60,
+                        bgcolor: '#1f1f1f',
+                        fontSize: '1.2rem',
+                        fontWeight: 600,
+                        border: '2px solid rgba(255,255,255,0.15)'
+                      }}
+                    >
+                      {userInfo.name.charAt(0).toUpperCase()}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="overline" sx={{ color: 'rgba(255,255,255,0.65)', letterSpacing: 2 }}>
+                        Clinician Workspace
+                      </Typography>
+                      <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                        Welcome back, {userInfo.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {userInfo.email}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1, alignItems: { sm: 'center' } }}>
+                    <Button
+                      variant="outlined"
+                      startIcon={<Logout />}
+                      onClick={handleLogout}
+                      sx={{
+                        borderColor: '#4fc3f7',
+                        color: '#4fc3f7',
+                        '&:hover': { borderColor: '#81d4fa', color: '#81d4fa' }
+                      }}
+                    >
+                      Sign Out
+                    </Button>
+                  </Box>
+                </Box>
+                <Grid container spacing={2} sx={{ mt: 3 }}>
+                  {highlightCards.map((card) => (
+                    <Grid item xs={12} md={4} key={card.label}>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          p: 2,
+                          borderRadius: 3,
+                          bgcolor: 'rgba(255,255,255,0.04)',
+                          border: '1px solid rgba(255,255,255,0.08)'
+                        }}
+                      >
+                        <Typography variant="caption" sx={{ letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)' }}>
+                          {card.label}
+                        </Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 700, color: '#e0e0e0' }}>
+                          {card.value}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {card.helper}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Card
+              sx={{
+                background: '#111',
+                border: '1px solid #222',
+                borderRadius: 4,
+                boxShadow: '0 20px 60px rgba(0,0,0,0.35)'
+              }}
+            >
+              <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1.5 }}>
+                  <MedicalServices sx={{ fontSize: '1.5rem', color: '#4fc3f7' }} />
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#e0e0e0' }}>
+                      Neuroimaging Analysis
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Select a modality and continue to upload for automated triage.
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={7}>
+                    <RadioGroup value={dataType} onChange={(e) => setDataType(e.target.value)}>
+                      <Grid container spacing={2}>
+                        {dataTypeOptions.map((option) => {
+                          const OptionIcon = option.icon;
+                          const isActive = dataType === option.value;
+                          return (
+                            <Grid item xs={12} key={option.value}>
+                              <Paper
+                                sx={{
+                                  p: 2,
+                                  borderRadius: 3,
+                                  border: isActive ? '2px solid #00ffff' : '1px solid #333333',
+                                  bgcolor: isActive ? '#1c1c1c' : 'transparent',
+                                  boxShadow: isActive ? '0 0 12px 3px #00ffff44' : 'none',
+                                  transition: 'all 0.2s ease'
+                                }}
+                              >
+                                <FormControlLabel
+                                  value={option.value}
+                                  control={<Radio />}
+                                  label={
+                                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                                      <Box
+                                        sx={{
+                                          width: 44,
+                                          height: 44,
+                                          borderRadius: '50%',
+                                          bgcolor: 'rgba(255,255,255,0.05)',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          border: '1px solid rgba(255,255,255,0.1)'
+                                        }}
+                                      >
+                                        {OptionIcon && <OptionIcon sx={{ color: '#4fc3f7' }} />}
+                                      </Box>
+                                      <Box>
+                                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                          {option.title}
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                          {option.description}
+                                        </Typography>
+                                      </Box>
+                                    </Box>
+                                  }
+                                />
+                              </Paper>
+                            </Grid>
+                          );
+                        })}
+                      </Grid>
+                    </RadioGroup>
+                  </Grid>
+                  <Grid item xs={12} md={5}>
+                    <Paper
+                      sx={{
+                        p: 3,
+                        borderRadius: 3,
+                        bgcolor: '#181818',
+                        border: '1px solid #2a2a2a',
+                        height: '100%'
+                      }}
+                    >
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+                        {selectedOption?.title}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {selectedOption?.description}
+                      </Typography>
+                      <Divider sx={{ mb: 2, borderColor: '#333' }} />
+                      <Typography variant="caption" sx={{ textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(255,255,255,0.6)' }}>
+                        Modality Insights
+                      </Typography>
+                      <Box component="ul" sx={{ mt: 1.5, pl: 3, color: '#b0b0b0' }}>
+                        {getModalityInsights(dataType).map((point) => (
+                          <Typography component="li" key={point} variant="body2" sx={{ mb: 1, lineHeight: 1.5 }}>
+                            {point}
+                          </Typography>
+                        ))}
+                      </Box>
+                    </Paper>
+                  </Grid>
+                </Grid>
+
+                <Button
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  onClick={handleProceed}
+                  sx={{
+                    mt: 4,
+                    py: 1.5,
+                    fontWeight: 700,
+                    borderRadius: 3,
+                    background: 'linear-gradient(90deg, #00bcd4, #00acc1)',
+                    '&:hover': { background: 'linear-gradient(90deg, #00acc1, #0097a7)' }
+                  }}
+                >
+                  Begin {dataType} Analysis Workflow
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
       </Box>
     </Box>
   );

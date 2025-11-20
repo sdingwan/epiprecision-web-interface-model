@@ -1,34 +1,35 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  Typography, 
-  Button, 
-  Box, 
-  Stepper, 
-  Step, 
-  StepLabel, 
-  CircularProgress, 
-  Paper, 
+import {
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Box,
+  Stepper,
+  Step,
+  StepLabel,
+  CircularProgress,
+  Paper,
   Avatar,
-  Alert
+  Alert,
+  Container
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useFiles } from '../App';
-import { 
-  Science, 
-  FolderSpecial, 
-  CloudUpload, 
-  Assessment 
+import {
+  Science,
+  FolderSpecial,
+  CloudUpload,
+  Assessment
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import StepConnector, { stepConnectorClasses } from '@mui/material/StepConnector';
 
 const steps = [
-  { label: 'Upload Data', icon: <CloudUpload sx={{ color: '#e0e0e0' }} /> },
-  { label: 'AI Analysis in Progress', icon: <Science sx={{ color: '#e0e0e0' }} /> },
-  { label: 'Results Categorized', icon: <FolderSpecial sx={{ color: '#e0e0e0' }} /> },
-  { label: 'Review & Download', icon: <Assessment sx={{ color: '#e0e0e0' }} /> }
+  { label: 'Upload Data', icon: CloudUpload },
+  { label: 'AI Analysis', icon: Science },
+  { label: 'Categorizing Results', icon: FolderSpecial },
+  { label: 'Review & Download', icon: Assessment }
 ];
 
 const CyanConnector = styled(StepConnector)(({ theme }) => ({
@@ -116,124 +117,179 @@ const ProcessingPage = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '80vh', p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <Card sx={{ minWidth: 400, maxWidth: 600, mx: 'auto', boxShadow: 4, borderRadius: 3 }}>
-        {/* Gradient Header */}
-        <Box sx={{
-          background: '#1a1a1a',
-          border: '1px solid #333333',
-          color: '#e0e0e0',
-          borderTopLeftRadius: 12,
-          borderTopRightRadius: 12,
-          p: 3,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2
-        }}>
-          <Avatar sx={{ bgcolor: '#2a2a2a', color: '#e0e0e0', width: 48, height: 48, boxShadow: 2 }}>
-            <Assessment fontSize="large" />
-          </Avatar>
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: '#e0e0e0' }}>
-              {steps[activeStep].label}
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'rgba(224,224,224,0.9)' }}>
-              AI-powered Workflow
-            </Typography>
-          </Box>
-        </Box>
-        <CardContent sx={{ p: 4 }}>
-          {/* File count info */}
-          {uploadedFiles.length > 0 && (
-            <Paper sx={{ mb: 3, p: 2, bgcolor: '#1a1a1a', borderRadius: 2, textAlign: 'center', border: '1px solid #333333' }}>
-              <Typography variant="body2" sx={{ color: '#00ffff', fontWeight: 600 }}>
-                Processing <b>{uploadedFiles.length}</b> uploaded {uploadedFiles.length === 1 ? 'file' : 'files'}
-              </Typography>
-            </Paper>
-          )}
+    <Box
+      sx={{
+        position: 'relative',
+        minHeight: '100vh',
+        bgcolor: '#020202',
+        py: { xs: 4, md: 6 },
+        px: { xs: 2, md: 4 },
+        overflow: 'hidden'
+      }}
+    >
+      <Box
+        aria-hidden
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          background: 'radial-gradient(circle at 20% 20%, rgba(0,255,255,0.25), transparent 45%), radial-gradient(circle at 80% 0%, rgba(0,128,255,0.18), transparent 40%)',
+          filter: 'blur(90px)',
+          opacity: 0.8
+        }}
+      />
+      <Box
+        aria-hidden
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0.05) 0%, transparent 50%, rgba(255,255,255,0.04) 100%)',
+          opacity: 0.25
+        }}
+      />
 
-          {/* Stepper */}
-          <Stepper activeStep={activeStep} alternativeLabel connector={<CyanConnector />} sx={{ mb: 4 }}>
-            {steps.map((step, idx) => (
-              <Step key={step.label} completed={activeStep > idx}>
-                <StepLabel 
-                  icon={step.icon}
+      <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
+        <Card
+          sx={{
+            borderRadius: 4,
+            background: 'linear-gradient(180deg, rgba(15,15,15,0.95) 0%, rgba(11,11,11,0.9) 100%)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: '0 25px 80px rgba(0,0,0,0.65)'
+          }}
+        >
+          <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Avatar sx={{ bgcolor: '#1c1c1c', width: 54, height: 54, border: '2px solid rgba(255,255,255,0.1)' }}>
+                  <Assessment />
+                </Avatar>
+                <Box>
+                  <Typography variant="overline" sx={{ color: 'rgba(255,255,255,0.7)', letterSpacing: 2 }}>
+                    AI Processing Workflow
+                  </Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: '#fff' }}>
+                    {steps[activeStep].label}
+                  </Typography>
+                </Box>
+              </Box>
+              {uploadedFiles.length > 0 && (
+                <Paper
+                  elevation={0}
                   sx={{
-                    color: activeStep >= idx ? '#00ffff' : '#b0b0b0', // icon and label cyan
-                    '& .MuiStepLabel-label': {
-                      color: activeStep >= idx ? '#00ffff' : '#b0b0b0',
-                      fontWeight: activeStep >= idx ? 600 : 400,
-                    },
+                    px: 3,
+                    py: 1.5,
+                    borderRadius: 3,
+                    bgcolor: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.08)'
                   }}
                 >
-                  {step.label}
-                </StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-
-          {/* Step Content */}
-          <Box sx={{ minHeight: 120, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            {activeStep === 0 && (
-              <Typography sx={{ mb: 2, color: '#00ffff', fontWeight: 600 }}>Ready to begin AI-powered analysis.</Typography>
-            )}
-            {activeStep === 1 && (
-              <Typography sx={{ mb: 2, color: '#00ffff', fontWeight: 600 }}>AI Analysis in Progress…</Typography>
-            )}
-            {activeStep === 2 && (
-              <Typography sx={{ mb: 2, color: '#00ffff', fontWeight: 600 }}>Results being categorized by AI.</Typography>
-            )}
-            {activeStep === 3 && (
-              <>
-                <Typography sx={{ mb: 2 }}>You can now review and download your results.</Typography>
-                {analysisSummary && (
-                  <Paper sx={{ p: 2, mb: 2, bgcolor: '#1a1a1a', border: '1px solid #333333', borderRadius: 2 }}>
-                    <Typography variant="body2" sx={{ color: '#e0e0e0', textAlign: 'center' }}>
-                      Patient Status: <strong>{analysisSummary.patientIsSoz ? 'SOZ Detected' : 'No SOZ Detected'}</strong>
-                    </Typography>
-                    <Typography variant="caption" display="block" sx={{ color: 'text.secondary', textAlign: 'center', mt: 1 }}>
-                      SOZ ICs: {analysisSummary.sozIcs && analysisSummary.sozIcs.length > 0 ? analysisSummary.sozIcs.join(', ') : 'None'}
-                    </Typography>
-                  </Paper>
-                )}
-                {analysisSummary && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    {analysisSummary.totalComponents ?? 'All'} ICs analyzed and categorized. Noise/ SOZ folders reflect AI results.
+                  <Typography variant="caption" sx={{ textTransform: 'uppercase', letterSpacing: 1, color: 'rgba(255,255,255,0.6)' }}>
+                    Files in queue
                   </Typography>
-                )}
-                <Button 
-                  variant="contained" 
-                  fullWidth 
-                  size="large" 
-                  sx={{ mt: 1, backgroundColor: '#2a2a2a', color: '#e0e0e0', '&:hover': { backgroundColor: '#333333' } }} 
-                  onClick={() => navigate('/results')}
-                >
-                  Review
-                </Button>
-              </>
-            )}
-            {(loading || isAnalyzing) && (
-              <Box display="flex" justifyContent="center" mt={2}>
-                <CircularProgress />
-              </Box>
-            )}
-          </Box>
+                  <Typography variant="h6" sx={{ color: '#00ffff', fontWeight: 700 }}>
+                    {uploadedFiles.length}
+                  </Typography>
+                </Paper>
+              )}
+            </Box>
 
-          {analysisError && (
-            <Alert 
-              severity="error" 
-              sx={{ mt: 2 }}
-              action={
-                <Button color="inherit" size="small" onClick={handleRetry}>
-                  Retry
-                </Button>
-              }
-            >
-              {analysisError}
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
+            <Stepper activeStep={activeStep} alternativeLabel connector={<CyanConnector />} sx={{ mb: 4 }}>
+              {steps.map((step, idx) => {
+                const StepIcon = step.icon;
+                return (
+                  <Step key={step.label} completed={activeStep > idx}>
+                    <StepLabel
+                      icon={<StepIcon sx={{ color: activeStep >= idx ? '#00ffff' : '#555555' }} />}
+                      sx={{
+                        '& .MuiStepLabel-label': {
+                          color: activeStep >= idx ? '#00ffff' : '#b0b0b0',
+                          fontWeight: activeStep >= idx ? 600 : 400
+                        }
+                      }}
+                    >
+                      {step.label}
+                    </StepLabel>
+                  </Step>
+                );
+              })}
+            </Stepper>
+
+            <Box sx={{ minHeight: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: 2 }}>
+              {activeStep < 3 && (
+                <>
+                  <Typography variant="h6" sx={{ color: '#e0e0e0', fontWeight: 600 }}>
+                    {activeStep === 0 && 'Preparing your dataset for AI triage.'}
+                    {activeStep === 1 && 'AI analysis is interpreting each component.'}
+                    {activeStep === 2 && 'Categorizing ICs into clinician review buckets.'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {loading || isAnalyzing ? 'This typically takes a few moments. Feel free to monitor progress.' : 'Waiting to start analysis…'}
+                  </Typography>
+                  {(loading || isAnalyzing) && <CircularProgress sx={{ color: '#00ffff' }} />}
+                </>
+              )}
+
+              {activeStep === 3 && (
+                <>
+                  <Typography variant="h6" sx={{ color: '#e0e0e0', fontWeight: 700 }}>
+                    Analysis complete. Ready for clinician review.
+                  </Typography>
+                  {analysisSummary && (
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2.5,
+                        borderRadius: 3,
+                        bgcolor: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)'
+                      }}
+                    >
+                      <Typography variant="body1" sx={{ fontWeight: 600, color: '#fff' }}>
+                        Patient Status: {analysisSummary.patientIsSoz ? 'SOZ Detected' : 'No SOZ Detected'}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                        {analysisSummary.sozIcs?.length ? `SOZ ICs: ${analysisSummary.sozIcs.join(', ')}` : 'No SOZ components flagged.'}
+                      </Typography>
+                      <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'rgba(255,255,255,0.5)' }}>
+                        {analysisSummary.totalComponents ?? 'All'} ICs processed
+                      </Typography>
+                    </Paper>
+                  )}
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={() => navigate('/results')}
+                    sx={{
+                      mt: 2,
+                      px: 4,
+                      py: 1.2,
+                      borderRadius: 3,
+                      fontWeight: 700,
+                      background: 'linear-gradient(90deg, #00bcd4, #0097a7)',
+                      '&:hover': { background: 'linear-gradient(90deg, #0097a7, #007c91)' }
+                    }}
+                  >
+                    Open Results Workspace
+                  </Button>
+                </>
+              )}
+            </Box>
+
+            {analysisError && (
+              <Alert
+                severity="error"
+                sx={{ mt: 3 }}
+                action={
+                  <Button color="inherit" size="small" onClick={handleRetry}>
+                    Retry
+                  </Button>
+                }
+              >
+                {analysisError}
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
+      </Container>
     </Box>
   );
 };

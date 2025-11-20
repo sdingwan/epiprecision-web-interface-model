@@ -239,8 +239,28 @@ const UploadPage = () => {
   const hasIcFiles = icCount > 0;
 
   return (
-    <Box sx={{ minHeight: '80vh', p: 3 }}>
-      <Grid container maxWidth="lg" spacing={4} sx={{ mx: 'auto' }}>
+    <Box sx={{ position: 'relative', minHeight: '100vh', py: 5, px: { xs: 2, md: 4 }, bgcolor: '#040404', overflow: 'hidden' }}>
+      <Box
+        aria-hidden
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          background: 'radial-gradient(circle at 20% 20%, rgba(0,255,255,0.25), transparent 45%), radial-gradient(circle at 80% 0%, rgba(0,128,255,0.18), transparent 40%)',
+          filter: 'blur(90px)',
+          opacity: 0.8
+        }}
+      />
+      <Box
+        aria-hidden
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: 'linear-gradient(120deg, rgba(255,255,255,0.05) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.05) 100%)',
+          opacity: 0.2
+        }}
+      />
+      <Box sx={{ position: 'relative', zIndex: 1, minHeight: '80vh', p: 3 }}>
+        <Grid container maxWidth="lg" spacing={4} sx={{ mx: 'auto' }}>
         {/* Header Section */}
         <Grid item xs={12}>
           <Card sx={{ mb: 3, background: '#1a1a1a', color: '#e0e0e0', border: '1px solid #333333' }}>
@@ -644,6 +664,7 @@ const UploadPage = () => {
           )}
         </Grid>
       </Grid>
+      </Box>
     </Box>
   );
 };
