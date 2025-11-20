@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  Typography, 
-  Radio, 
-  RadioGroup, 
-  FormControlLabel, 
-  Button, 
-  Box, 
-  Avatar, 
+import { keyframes } from '@emotion/react';
+import {
+  Card,
+  CardContent,
+  Typography,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  Button,
+  Box,
+  Avatar,
   Grid,
   Paper,
   Divider,
@@ -18,7 +19,6 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Logout, 
-  Person, 
   Security,
   CheckCircle,
   MedicalServices,
@@ -26,12 +26,26 @@ import {
   Assessment,
   KeyboardArrowDown
 } from '@mui/icons-material';
+import AuthPanel from './AuthPanel';
+
+const auroraDrift = keyframes`
+  0% { transform: translate(-10%, -10%) scale(1); opacity: 0.35; }
+  50% { transform: translate(10%, 5%) scale(1.1); opacity: 0.6; }
+  100% { transform: translate(-10%, -10%) scale(1); opacity: 0.35; }
+`;
+
+const gridSlide = keyframes`
+  0% { background-position: 0 0, 0 0; opacity: 0.28; }
+  50% { background-position: -120px 160px, 0 0; opacity: 0.4; }
+  100% { background-position: -240px 320px, 0 0; opacity: 0.28; }
+`;
 
 const LandingPage = () => {
   const [dataType, setDataType] = useState('MRI');
   const [userInfo, setUserInfo] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const sectionPadding = { xs: 3, sm: 6, md: 10 };
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -91,12 +105,12 @@ const LandingPage = () => {
     // Dispatch custom event to notify other components
     window.dispatchEvent(new Event('loginStateChanged'));
     
-    navigate('/login');
+    navigate('/');
   };
 
   const handleProceed = () => {
     if (!userInfo) {
-      navigate('/login');
+      scrollToSection('login');
     } else {
       navigate('/upload', { state: { dataType } });
     }
@@ -165,33 +179,85 @@ const LandingPage = () => {
     ];
 
     return (
-      <Box sx={{ bgcolor: '#050505', color: '#e0e0e0' }}>
+      <Box
+        sx={{
+          position: 'relative',
+          minHeight: '100vh',
+          bgcolor: '#050505',
+          color: '#e0e0e0',
+          overflow: 'hidden'
+        }}
+      >
         <Box
-          component="section"
-          id="home"
+          aria-hidden
           sx={{
+            position: 'fixed',
+            inset: 0,
+            pointerEvents: 'none',
+            background:
+              'radial-gradient(circle at 15% 25%, rgba(0,255,255,0.2), transparent 45%), radial-gradient(circle at 80% 0%, rgba(0,128,255,0.15), transparent 40%), radial-gradient(circle at 70% 80%, rgba(0,255,170,0.15), transparent 45%)',
+            filter: 'blur(60px)',
+            animation: `${auroraDrift} 30s ease-in-out infinite`,
+            zIndex: 0
+          }}
+        />
+        <Box
+          aria-hidden
+          sx={{
+            position: 'fixed',
+            inset: 0,
+            pointerEvents: 'none',
+            backgroundImage:
+              'linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)',
+            backgroundSize: '180px 180px',
+            mixBlendMode: 'screen',
+            animation: `${gridSlide} 35s linear infinite`,
+            zIndex: 0
+          }}
+        />
+        <Box sx={{ position: 'relative', zIndex: 1 }}>
+          <Box
+            component="section"
+            id="home"
+            sx={{
             minHeight: { xs: 'auto', md: 'calc(100vh - 70px)' },
             display: 'flex',
             alignItems: 'center',
             py: { xs: 6, md: 8 },
             position: 'relative',
             overflow: 'hidden',
-            background: 'radial-gradient(circle at 20% 20%, rgba(0,255,255,0.12), transparent 55%)',
-            borderBottom: '1px solid rgba(255,255,255,0.05)',
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              inset: 0,
-              background: 'linear-gradient(120deg, rgba(0,0,0,0.4), rgba(0,0,0,0))',
-              pointerEvents: 'none'
-            }
+            borderBottom: '1px solid rgba(255,255,255,0.05)'
           }}
         >
+          {/* Animated background layer */}
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              background:
+                'radial-gradient(circle at 20% 20%, rgba(0,255,255,0.18), transparent 55%)',
+              animation: 'pulseGlow 12s ease-in-out infinite',
+              opacity: 0.5,
+              pointerEvents: 'none'
+            }}
+          />
+          {/* Floating particles overlay */}
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'160\' height=\'160\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%2300FFFF33\' fill-opacity=\'0.15\'%3E%3Ccircle cx=\'10\' cy=\'10\' r=\'1.5\'/%3E%3Ccircle cx=\'70\' cy=\'40\' r=\'1\'/%3E%3Ccircle cx=\'140\' cy=\'90\' r=\'1.25\'/%3E%3Ccircle cx=\'40\' cy=\'120\' r=\'1\'/%3E%3C/g%3E%3C/svg%3E")',
+              backgroundSize: '160px 160px',
+              animation: 'drift 30s linear infinite',
+              opacity: 0.4,
+              pointerEvents: 'none'
+            }}
+          />
           <Container
             maxWidth="xl"
             sx={{
               flexGrow: 1,
-              px: { xs: 3, sm: 6, md: 10 }
+              px: sectionPadding
             }}
           >
             <Grid container spacing={{ xs: 4, md: 6 }} alignItems="stretch">
@@ -213,7 +279,7 @@ const LandingPage = () => {
                       <Psychology sx={{ fontSize: '2rem', color: '#00ffff' }} />
                     </Box>
                     <Box>
-                      <Typography variant="h3" sx={{ fontWeight: 800, color: '#e0e0e0', letterSpacing: 0.5 }}>
+                  <Typography variant="h2" sx={{ fontWeight: 800, color: '#e0e0e0', letterSpacing: 0.5 }}>
                         EpiPrecision
                       </Typography>
                       <Typography variant="subtitle1" color="text.secondary" sx={{ fontWeight: 600 }}>
@@ -222,20 +288,20 @@ const LandingPage = () => {
                     </Box>
                   </Stack>
 
-                  <Typography variant="h4" sx={{ mb: 3, fontWeight: 800, color: '#e0e0e0', lineHeight: 1.3 }}>
+                  <Typography variant="h3" sx={{ mb: 3, fontWeight: 800, color: '#e0e0e0', lineHeight: 1.3 }}>
                     Precision Epilepsy Analysis Through AI-Powered Neuroimaging
                   </Typography>
 
-                <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary', lineHeight: 1.8 }}>
+                <Typography variant="h6" sx={{ mb: 4, color: 'text.secondary', lineHeight: 1.8, fontWeight: 400 }}>
                   DeepXS0Z decodes seizures with AI-powered maps, rewiring hope with surgical precision while keeping patient journeys non-invasive.
                 </Typography>
 
                 <Grid container spacing={2} sx={{ mb: 4 }}>
-                  {heroFeatures.map((feature, index) => (
+                  {heroFeatures.map((feature) => (
                     <Grid item xs={12} sm={6} key={feature.label}>
                       <Stack direction="row" spacing={1.5} alignItems="center">
                         {feature.icon}
-                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
                           {feature.label}
                         </Typography>
                       </Stack>
@@ -255,68 +321,40 @@ const LandingPage = () => {
                 <Paper
                   elevation={0}
                   sx={{
-                    p: { xs: 4, md: 5 },
+                    p: { xs: 3, md: 4 },
                     borderRadius: 4,
-                    background: '#121212',
+                    background: '#111',
                     border: '1px solid rgba(255,255,255,0.08)',
-                    boxShadow: '0 20px 45px rgba(0, 0, 0, 0.45)',
                     width: '100%',
-                    height: '100%',
                     display: 'flex',
-                    flexDirection: 'column'
+                    flexDirection: 'column',
+                    gap: 2.5
                   }}
                 >
-                  <Stack spacing={3} alignItems="center" sx={{ flexGrow: 1 }}>
+                  <Stack spacing={2} alignItems="center">
                     <Avatar
                       sx={{
-                        width: 64,
-                        height: 64,
+                        width: 56,
+                        height: 56,
                         bgcolor: 'rgba(0,255,255,0.12)',
                         color: '#00ffff',
-                        border: '2px solid rgba(0,255,255,0.35)'
+                        border: '2px solid rgba(0,255,255,0.3)'
                       }}
                     >
-                      <Psychology sx={{ fontSize: '1.9rem' }} />
+                      <Psychology sx={{ fontSize: '1.6rem' }} />
                     </Avatar>
                     <Box sx={{ textAlign: 'center' }}>
                       <Typography variant="h6" sx={{ fontWeight: 700, color: '#e0e0e0' }}>
-                        Secure Access Portal
+                        Secure Access
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Sign in to access advanced neuroimaging analysis tools.
+                      <Typography variant="body1" color="text.secondary">
+                        Sign in to continue to the clinician workspace.
                       </Typography>
                     </Box>
-                    <Button
-                      variant="outlined"
-                      size="large"
-                      fullWidth
-                      onClick={() => navigate('/login')}
-                      startIcon={<Person />}
-                      sx={{
-                        py: 1.6,
-                        fontSize: '1.05rem',
-                        fontWeight: 700,
-                        borderRadius: 2,
-                        borderWidth: 2,
-                        borderColor: 'rgba(0,255,255,0.35)',
-                        color: '#e0e0e0',
-                        '&:hover': {
-                          borderColor: '#00ffff',
-                          boxShadow: '0 0 12px rgba(0,255,255,0.45)'
-                        }
-                      }}
-                    >
-                      Sign In / Create Account
-                    </Button>
-                    <Divider sx={{ width: '100%' }}>
-                      <Typography variant="caption" color="text.secondary">
-                        Secure & Compliant
-                      </Typography>
-                    </Divider>
-                    <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', lineHeight: 1.6 }}>
-                      The platform complies with FDA guidelines and medical data protection standards. Your patient data is encrypted and secure.
-                    </Typography>
                   </Stack>
+                  <Box id="login" sx={{ width: '100%' }}>
+                    <AuthPanel showTitle={false} />
+                  </Box>
                 </Paper>
               </Grid>
             </Grid>
@@ -361,17 +399,17 @@ const LandingPage = () => {
           </Box>
         </Box>
 
-        <Box component="section" id="missed-opportunity" sx={{ borderTop: '1px solid #111', borderBottom: '1px solid #111', py: { xs: 6, md: 8 } }}>
-          <Container maxWidth="lg">
-            <Grid container spacing={4} alignItems="stretch">
+          <Box component="section" id="missed-opportunity" sx={{ borderTop: '1px solid #111', borderBottom: '1px solid #111', py: { xs: 6, md: 8 } }}>
+            <Container maxWidth="xl" sx={{ px: sectionPadding }}>
+              <Grid container spacing={4} alignItems="stretch">
               <Grid item xs={12} md={5}>
                 <Typography variant="overline" sx={{ color: '#00ffff', letterSpacing: 2 }}>
                   The Missed Opportunity
                 </Typography>
-                <Typography variant="h5" sx={{ fontWeight: 700, mt: 1, mb: 2 }}>
+                <Typography variant="h3" sx={{ fontWeight: 800, mt: 1, mb: 2, lineHeight: 1.3 }}>
                   Over 1M people live with drug-resistant epilepsy, yet fewer than 4,000 surgeries happen each year.
                 </Typography>
-                <Typography variant="body1" color="text.secondary">
+                <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 500 }}>
                   That means more than 996,000 people are waiting because pre-surgical evaluation remains the real barrier.
                 </Typography>
               </Grid>
@@ -388,10 +426,10 @@ const LandingPage = () => {
                           border: '1px solid rgba(255,255,255,0.06)'
                         }}
                       >
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
                           {item.title}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body1" color="text.secondary">
                           {item.detail}
                         </Typography>
                       </Paper>
@@ -403,11 +441,11 @@ const LandingPage = () => {
           </Container>
         </Box>
 
-        <Container component="section" id="about" maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
-          <Typography variant="overline" sx={{ color: '#00ffff', letterSpacing: 2 }}>
+          <Container component="section" id="about" maxWidth="xl" sx={{ px: sectionPadding, py: { xs: 6, md: 8 } }}>
+          <Typography variant="overline" sx={{ color: '#00ffff', letterSpacing: 2, fontSize: '0.95rem' }}>
             A Smarter Path Forward
           </Typography>
-          <Typography variant="h4" sx={{ fontWeight: 800, my: 2 }}>
+          <Typography variant="h3" sx={{ fontWeight: 800, my: 2 }}>
             DeepXS0Z combines AI with resting-state fMRI to non-invasively localize the seizure onset zone.
           </Typography>
           <Grid container spacing={3}>
@@ -425,7 +463,7 @@ const LandingPage = () => {
                   <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
                     {item.title}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body1" color="text.secondary">
                     {item.detail}
                   </Typography>
                 </Paper>
@@ -434,50 +472,16 @@ const LandingPage = () => {
           </Grid>
         </Container>
 
-        <Box component="section" sx={{ bgcolor: '#070707', py: { xs: 6, md: 8 } }}>
-          <Container maxWidth="lg">
-            <Typography variant="overline" sx={{ color: '#00ffff', letterSpacing: 2 }}>
-              Impact Across the Continuum
-            </Typography>
-            <Grid container spacing={3} sx={{ mt: 2 }}>
-              {impactAudiences.map((audience) => (
-                <Grid item xs={12} md={4} key={audience.title}>
-                  <Paper
-                    sx={{
-                      height: '100%',
-                      p: 3,
-                      borderRadius: 3,
-                      bgcolor: '#101010',
-                      border: '1px solid rgba(255,255,255,0.06)'
-                    }}
-                  >
-                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-                      {audience.title}
-                    </Typography>
-                    <Stack spacing={1}>
-                      {audience.bullets.map((bullet) => (
-                        <Typography key={bullet} variant="body2" color="text.secondary">
-                          • {bullet}
-                        </Typography>
-                      ))}
-                    </Stack>
-                  </Paper>
-                </Grid>
-              ))}
-            </Grid>
-          </Container>
-        </Box>
-
-        <Container component="section" maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
-          <Typography variant="overline" sx={{ color: '#00ffff', letterSpacing: 2 }}>
-            How It Works
+          <Container component="section" maxWidth="xl" sx={{ px: sectionPadding, py: { xs: 6, md: 8 } }}>
+            <Typography variant="overline" sx={{ color: '#00ffff', letterSpacing: 2, fontSize: '0.95rem' }}>
+              How It Works
           </Typography>
           <Grid container spacing={4} sx={{ mt: 1 }}>
             <Grid item xs={12} md={6}>
-              <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
+              <Typography variant="h4" sx={{ fontWeight: 700, mb: 2, lineHeight: 1.3 }}>
                 From scan to SOZ map with four streamlined steps.
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 400 }}>
                 DeepXS0Z merges deep learning with expert review, so what once required weeks of invasive tests now begins with a widely available MRI.
               </Typography>
             </Grid>
@@ -507,10 +511,10 @@ const LandingPage = () => {
                       {index + 1}
                     </Box>
                     <Box>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 700 }}>
                         {step.label}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body1" color="text.secondary">
                         {step.detail}
                       </Typography>
                     </Box>
@@ -518,27 +522,62 @@ const LandingPage = () => {
                 ))}
               </Stack>
             </Grid>
-          </Grid>
-        </Container>
+            </Grid>
+          </Container>
 
-        <Box component="section" id="contact" sx={{ bgcolor: '#070707', py: { xs: 6, md: 8 } }}>
-          <Container maxWidth="md">
-            <Paper
-              sx={{
-                p: { xs: 4, md: 5 },
-                borderRadius: 4,
-                bgcolor: '#101010',
-                border: '1px solid rgba(255,255,255,0.08)'
-              }}
-            >
-              <Typography variant="overline" sx={{ color: '#00ffff', letterSpacing: 2 }}>
+          <Box component="section" sx={{ bgcolor: '#070707', py: { xs: 6, md: 8 } }}>
+            <Container maxWidth="xl" sx={{ px: sectionPadding }}>
+              <Typography variant="overline" sx={{ color: '#00ffff', letterSpacing: 2, fontSize: '0.95rem' }}>
+                Impact Across the Continuum
+              </Typography>
+              <Grid container spacing={3} sx={{ mt: 2 }}>
+                {impactAudiences.map((audience) => (
+                  <Grid item xs={12} md={4} key={audience.title}>
+                    <Paper
+                      sx={{
+                        height: '100%',
+                        p: 3,
+                        borderRadius: 3,
+                        bgcolor: '#101010',
+                        border: '1px solid rgba(255,255,255,0.06)'
+                      }}
+                    >
+                      <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
+                        {audience.title}
+                      </Typography>
+                      <Stack spacing={1}>
+                        {audience.bullets.map((bullet) => (
+                          <Typography key={bullet} variant="body1" color="text.secondary">
+                            • {bullet}
+                          </Typography>
+                        ))}
+                      </Stack>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </Container>
+          </Box>
+
+          <Box component="section" id="contact" sx={{ bgcolor: '#070707', py: { xs: 6, md: 8 } }}>
+            <Container maxWidth="xl" sx={{ px: sectionPadding }}>
+              <Box sx={{ maxWidth: 720, mx: 'auto' }}>
+              <Paper
+                sx={{
+                  p: { xs: 4, md: 5 },
+                  borderRadius: 4,
+                  bgcolor: '#101010',
+                  border: '1px solid rgba(255,255,255,0.08)'
+                }}
+              >
+              <Typography variant="overline" sx={{ color: '#00ffff', letterSpacing: 2, fontSize: '0.95rem' }}>
                 Contact Us
               </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 800, mt: 1, mb: 2 }}>
+              <Typography variant="h4" sx={{ fontWeight: 800, mt: 1, mb: 2 }}>
                 info@epiprecision.tech | www.epiprecision.tech
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                4539 N 22nd St, Phoenix, Arizona, 85016, US | smitta53@asu.edu
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                4539 N 22nd St, Phoenix, Arizona, 85016, US
               </Typography>
               <Button
                 variant="contained"
@@ -554,8 +593,10 @@ const LandingPage = () => {
               >
                 Start a Conversation
               </Button>
-            </Paper>
+              </Paper>
+            </Box>
           </Container>
+          </Box>
         </Box>
       </Box>
     );
@@ -632,10 +673,10 @@ const LandingPage = () => {
               </Typography>
             </Box>
 
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.5 }}>
-              Select your data type to begin advanced independent component analysis 
-              for precise seizure onset zone identification.
-            </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 2, lineHeight: 1.5 }}>
+                Select your data type to begin advanced independent component analysis 
+                for precise seizure onset zone identification.
+              </Typography>
 
             <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
               Select Data Type

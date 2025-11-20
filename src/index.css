@@ -96,6 +96,30 @@ input:focus, textarea:focus, select:focus {
   border-color: #4fc3f7;
 }
 
+@keyframes pulseGlow {
+  0% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+}
+
+@keyframes drift {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: -320px -320px;
+  }
+}
+
 /* Ensure proper styling for any tooltips or popovers */
 .MuiTooltip-tooltip {
   background-color: #1a1a1a !important;

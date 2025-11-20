@@ -305,10 +305,9 @@ const Navbar = () => {
             </Box>
             <Button
               color="inherit"
-              component={Link}
-              to="/login"
               variant="outlined"
               startIcon={<Person />}
+              onClick={() => scrollToSection('login')}
               sx={{ 
                 borderColor: 'rgba(255, 255, 255, 0.5)',
                 borderWidth: '1.5px',
