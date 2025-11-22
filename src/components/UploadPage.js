@@ -311,54 +311,71 @@ const UploadPage = () => {
                     Total size: {getTotalFileSize(icFiles)} MB
                   </Typography>
                   {/* Clinical context input for each file */}
-                  <List dense sx={{ mt: 2, width: '100%' }}>
-                    {icFiles.map((file, idx) => (
-                      <ListItem key={file.id} alignItems="flex-start" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', mb: 2, width: '100%' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 2, mb: 1 }}>
-                          {getFileIcon(file)}
-                          <Box sx={{ flexGrow: 1 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                              {file.name}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {(file.size / 1024 / 1024).toFixed(2)} MB • {file.type || 'Unknown type'}
-                            </Typography>
+                  <Box
+                    sx={{
+                      mt: 2,
+                      width: '100%',
+                      maxHeight: 460, // ~5 cards before scrolling
+                      overflowY: 'auto',
+                      pr: 1,
+                      '&::-webkit-scrollbar': {
+                        width: '8px'
+                      },
+                      '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: '#333333',
+                        borderRadius: '4px'
+                      }
+                    }}
+                  >
+                    <List dense sx={{ width: '100%' }}>
+                      {icFiles.map((file, idx) => (
+                        <ListItem key={file.id} alignItems="flex-start" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', mb: 2, width: '100%' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 2, mb: 1 }}>
+                            {getFileIcon(file)}
+                            <Box sx={{ flexGrow: 1 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                {file.name}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {(file.size / 1024 / 1024).toFixed(2)} MB • {file.type || 'Unknown type'}
+                              </Typography>
+                            </Box>
                           </Box>
-                        </Box>
-                        <Box sx={{ width: '100%', mt: 1, minWidth: '100%' }}>
-                          <input
-                            type="text"
-                            placeholder="Add clinical context (optional)"
-                            value={file.clinicalNote || ''}
-                            onChange={e => handleNoteChange(file.id, e.target.value)}
-                            style={{
-                              width: '350px',
-                              maxWidth: '100%',
-                              padding: '12px 16px',
-                              borderRadius: '8px',
-                              border: '2px solid #444444',
-                              fontSize: '1rem',
-                              marginTop: 4,
-                              backgroundColor: '#1a1a1a',
-                              color: '#e0e0e0',
-                              outline: 'none',
-                              minHeight: '48px',
-                              boxSizing: 'border-box',
-                              transition: 'all 0.2s ease-in-out',
-                            }}
-                            onFocus={e => {
-                              e.target.style.border = '2px solid #00ffff';
-                              e.target.style.boxShadow = '0 0 8px 2px #00ffff44';
-                            }}
-                            onBlur={e => {
-                              e.target.style.border = '2px solid #444444';
-                              e.target.style.boxShadow = 'none';
-                            }}
-                          />
-                        </Box>
-                      </ListItem>
-                    ))}
-                  </List>
+                          <Box sx={{ width: '100%', mt: 1, minWidth: '100%' }}>
+                            <input
+                              type="text"
+                              placeholder="Add clinical context (optional)"
+                              value={file.clinicalNote || ''}
+                              onChange={e => handleNoteChange(file.id, e.target.value)}
+                              style={{
+                                width: '350px',
+                                maxWidth: '100%',
+                                padding: '12px 16px',
+                                borderRadius: '8px',
+                                border: '2px solid #444444',
+                                fontSize: '1rem',
+                                marginTop: 4,
+                                backgroundColor: '#1a1a1a',
+                                color: '#e0e0e0',
+                                outline: 'none',
+                                minHeight: '48px',
+                                boxSizing: 'border-box',
+                                transition: 'all 0.2s ease-in-out',
+                              }}
+                              onFocus={e => {
+                                e.target.style.border = '2px solid #00ffff';
+                                e.target.style.boxShadow = '0 0 8px 2px #00ffff44';
+                              }}
+                              onBlur={e => {
+                                e.target.style.border = '2px solid #444444';
+                                e.target.style.boxShadow = 'none';
+                              }}
+                            />
+                          </Box>
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Box>
                 </Alert>
               )}
 

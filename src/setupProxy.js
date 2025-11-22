@@ -7,14 +7,23 @@ const FINAL_DIR = path.resolve(__dirname, '../final');
 const PIPELINE_SCRIPT = path.join(FINAL_DIR, 'pipeline.py');
 const PIPELINE_RESULTS_JSON = path.join(FINAL_DIR, 'pipeline_results.json');
 const ANALYSIS_SUMMARY_JSON = path.join(FINAL_DIR, 'analysis_summary.json');
+const DBSCAN_OUTPUT_DIR = path.join(FINAL_DIR, 'dbscan_outputs');
+const DBSCAN_METADATA_JSON = path.join(FINAL_DIR, 'dbscan_outputs.json');
 const UPLOAD_ROOT = path.join(FINAL_DIR, 'uploads');
 const DEFAULT_CNN_OUTPUT = path.join(FINAL_DIR, 'predictions_DL.csv');
 const DEFAULT_KL_OUTPUT = path.join(FINAL_DIR, 'predictions_KL.csv');
 const REPO_ROOT = path.resolve(__dirname, '..');
 
 fs.mkdirSync(UPLOAD_ROOT, { recursive: true });
+fs.mkdirSync(DBSCAN_OUTPUT_DIR, { recursive: true });
 
 let latestUpload = null;
+
+const sanitizeCaseId = (value = '') => {
+  const trimmed = (value || '').trim();
+  const sanitized = trimmed.replace(/[^A-Za-z0-9-_]/g, '_');
+  return sanitized || 'case';
+};
 
 const normalizeRelativePath = (relativePath = '') =>
   relativePath.replace(/\\/g, '/').replace(/^\/+/, '');
@@ -100,6 +109,9 @@ const runPipeline = async () => {
         pipelineEnv.CNN_IMAGE_DIR = latestUpload.imageDir;
         pipelineEnv.KNOWLEDGE_SUBJECT_DIR = latestUpload.caseRootDir;
         pipelineEnv.WORKSPACE_ROOT_DIR = latestUpload.workspaceRootDir;
+        if (latestUpload.caseFolderName) {
+          pipelineEnv.CASE_ID = sanitizeCaseId(latestUpload.caseFolderName);
+        }
         if (latestUpload.workspaceFile) {
           pipelineEnv.WORKSPACE_FILE = latestUpload.workspaceFile;
         } else {
@@ -136,6 +148,7 @@ const readJsonIfExists = (jsonPath) => {
 
 module.exports = function setupProxy(app) {
   app.use(express.json({ limit: '1024mb' }));
+  app.use('/analysis-assets', express.static(DBSCAN_OUTPUT_DIR));
 
   app.post('/api/upload-case', async (req, res) => {
     try {
@@ -276,6 +289,21 @@ module.exports = function setupProxy(app) {
       }
 
       const summary = readJsonIfExists(ANALYSIS_SUMMARY_JSON) || {};
+      const dbscanMeta = readJsonIfExists(DBSCAN_METADATA_JSON);
+      const dbscanMap = new Map();
+      if (dbscanMeta?.outputs && Array.isArray(dbscanMeta.outputs)) {
+        const expectedCaseId = latestUpload?.caseFolderName
+          ? sanitizeCaseId(latestUpload.caseFolderName)
+          : null;
+        if (!expectedCaseId || dbscanMeta.caseId === expectedCaseId) {
+          dbscanMeta.outputs.forEach((item) => {
+            if (item?.ic == null || !item?.relative_path) {
+              return;
+            }
+            dbscanMap.set(Number(item.ic), `/analysis-assets/${item.relative_path}`);
+          });
+        }
+      }
 
       const results = rawResults.map((entry) => ({
         ic: Number(entry.IC),
@@ -297,6 +325,7 @@ module.exports = function setupProxy(app) {
             : Number(entry.Prob_Class_3),
         isSoz: Boolean(entry.SOZ),
         reason: entry.Reason,
+        dbscanImage: dbscanMap.get(Number(entry.IC)) || null,
       }));
 
       res.json({

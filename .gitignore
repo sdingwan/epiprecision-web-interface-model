@@ -14,5 +14,7 @@ final/pipeline_results.csv
 final/pipeline_results.json
 final/analysis_summary.json
 final/predictions_*.csv
+final/dbscan_outputs/
+final/dbscan_outputs.json
 final/CNN_modelTrainedPCH/
 Workspace-*.mat

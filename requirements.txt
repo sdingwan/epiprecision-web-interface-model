@@ -1,9 +1,11 @@
 # Python dependencies for the pipeline utilities under final/
 h5py==3.15.1
 joblib==1.4.2
-numpy==2.3.4
+numpy==2.2.2
 pandas==2.2.3
 pywavelets==1.7.0
 scikit-learn==1.5.2
 scipy==1.14.1
 tensorflow==2.20.0
+matplotlib==3.9.2
+opencv-python-headless==4.10.0.84

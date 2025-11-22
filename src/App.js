@@ -189,11 +189,13 @@ const FileProvider = ({ children }) => {
             'Pipeline labelled this component as resting-state / non-SOZ.';
         }
 
+        const aiHeatmap = analysis?.dbscanImage || `${publicUrl}/AIHeatmap.png`;
+
         const fileWithAI = {
           ...file,
           aiCategory,
           aiExplanation,
-          aiHeatmap: `${publicUrl}/AIHeatmap.png`,
+          aiHeatmap,
           icNumber,
           analysisDetails: analysis || null
         };
