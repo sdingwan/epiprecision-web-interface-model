@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# Standalone helper script for manually running DBSCAN on SOZ ICs.
+# Not used by the web app: the app runs DBSCAN via final/pipeline.py,
+# which calls IC_DBScan.generate_dbscan_visual with dynamic paths.
+
 """
 Run DBSCAN-based SOZ localization for all ICs detected as SOZ.
 """

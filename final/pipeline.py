@@ -37,8 +37,12 @@ DEFAULT_CNN_MODEL_PATH = BASE_DIR / "CNN_modelTrainedPCH"
 DEFAULT_CNN_OUTPUT = BASE_DIR / "predictions_DL.csv"
 DEFAULT_TRAINED_MODEL_PATH = BASE_DIR / "trained_model.joblib"
 DEFAULT_KL_OUTPUT = BASE_DIR / "predictions_KL.csv"
+DEFAULT_FEATURES_OUTPUT = BASE_DIR / "ic_trainingdata_from_mat.csv"
+DEFAULT_EXPLANATIONS_OUTPUT = BASE_DIR / "ic_explanations.csv"
 DBSCAN_OUTPUT_ROOT = BASE_DIR / "dbscan_outputs"
 DBSCAN_METADATA_FILE = BASE_DIR / "dbscan_outputs.json"
+VOXELINFO_SCRIPT = REPO_ROOT / "VoxelInfoNewWhite.py"
+EXPLANATION_SCRIPT = REPO_ROOT / "generate_ic_explanations.py"
 
 CASE_ROOT_DIR = Path(os.environ.get("CASE_ROOT_DIR", DEFAULT_CASE_ROOT_DIR))
 IMAGE_DIR = Path(os.environ.get("CNN_IMAGE_DIR", CASE_ROOT_DIR / "MO" / "report"))
@@ -53,6 +57,12 @@ KNOWLEDGE_SUBJECT_DIR = Path(os.environ.get("KNOWLEDGE_SUBJECT_DIR", CASE_ROOT_D
 WORKSPACE_ROOT_DIR = os.environ.get("WORKSPACE_ROOT_DIR", str(CASE_ROOT_DIR))
 WORKSPACE_FILE = os.environ.get("WORKSPACE_FILE")
 KNOWLEDGE_OUTPUT_CSV = Path(os.environ.get("KNOWLEDGE_OUTPUT_CSV", DEFAULT_KL_OUTPUT))
+FEATURES_OUTPUT_CSV = Path(os.environ.get("KNOWLEDGE_FEATURES_CSV", DEFAULT_FEATURES_OUTPUT))
+if not FEATURES_OUTPUT_CSV.is_absolute():
+    FEATURES_OUTPUT_CSV = BASE_DIR / FEATURES_OUTPUT_CSV
+EXPLANATIONS_OUTPUT_CSV = Path(os.environ.get("KNOWLEDGE_EXPLANATIONS_CSV", DEFAULT_EXPLANATIONS_OUTPUT))
+if not EXPLANATIONS_OUTPUT_CSV.is_absolute():
+    EXPLANATIONS_OUTPUT_CSV = BASE_DIR / EXPLANATIONS_OUTPUT_CSV
 
 
 def sanitize_case_id(case_id: Optional[str]) -> str:
@@ -134,6 +144,7 @@ def run_inference():
             "TRAINED_MODEL_PATH": str(TRAINED_MODEL_PATH),
             "WORKSPACE_ROOT_DIR": WORKSPACE_ROOT_DIR,
             "KNOWLEDGE_OUTPUT_CSV": str(KNOWLEDGE_OUTPUT_CSV),
+            "KNOWLEDGE_FEATURES_CSV": str(FEATURES_OUTPUT_CSV),
         })
         if WORKSPACE_FILE:
             env["WORKSPACE_FILE"] = WORKSPACE_FILE
@@ -163,6 +174,100 @@ def run_inference():
     except Exception as e:
         print(f"Error running inference: {e}")
         return None
+
+
+def resolve_template_path() -> Optional[Path]:
+    explicit = os.environ.get("VOXELINFO_TEMPLATE_PATH")
+    if explicit:
+        candidate = Path(explicit)
+        if candidate.exists():
+            return candidate
+
+    candidates = [
+        REPO_ROOT / "R.png",
+        BASE_DIR / "R.png",
+        CASE_ROOT_DIR / "R.png",
+        CASE_ROOT_DIR / "MO" / "R.png",
+        CASE_ROOT_DIR / "report" / "R.png",
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def run_voxelinfo(workspace_output: Path) -> Optional[Path]:
+    """
+    Run VoxelInfoNewWhite.py to generate a workspace .mat file.
+    """
+    if not VOXELINFO_SCRIPT.exists():
+        print(f"[WARN] VoxelInfoNewWhite.py not found at {VOXELINFO_SCRIPT}. Skipping MAT generation.")
+        return None
+
+    template_path = resolve_template_path()
+    if not template_path:
+        print("[WARN] Template image (R.png) not found. Skipping MAT generation.")
+        return None
+
+    env = os.environ.copy()
+    env.update({
+        "VOXELINFO_SUBJECT_DIR": str(CASE_ROOT_DIR),
+        "VOXELINFO_REPORT_DIR": str(IMAGE_DIR),
+        "VOXELINFO_TEMPLATE_PATH": str(template_path),
+        "VOXELINFO_OUTPUT_DIR": str(workspace_output.parent),
+        "VOXELINFO_WORKSPACE_NAME": workspace_output.name,
+    })
+
+    if os.environ.get("VOXELINFO_LABELS_PATH"):
+        env["VOXELINFO_LABELS_PATH"] = os.environ.get("VOXELINFO_LABELS_PATH")
+
+    result = subprocess.run(
+        [sys.executable, str(VOXELINFO_SCRIPT)],
+        capture_output=True,
+        text=True,
+        cwd=REPO_ROOT,
+        env=env,
+    )
+    if result.returncode != 0:
+        print(f"Error running VoxelInfoNewWhite.py: {result.stderr}")
+        return None
+
+    if workspace_output.exists():
+        print(f"Workspace generated at: {workspace_output}")
+        return workspace_output
+
+    print(f"[WARN] Expected workspace file not found: {workspace_output}")
+    return None
+
+
+def run_explanations(input_csv: Path, output_csv: Path) -> Optional[Path]:
+    """
+    Run generate_ic_explanations.py to produce per-IC explanations.
+    """
+    if not EXPLANATION_SCRIPT.exists():
+        print(f"[WARN] generate_ic_explanations.py not found at {EXPLANATION_SCRIPT}. Skipping explanations.")
+        return None
+
+    if not input_csv.exists():
+        print(f"[WARN] Feature CSV not found at {input_csv}. Skipping explanations.")
+        return None
+
+    result = subprocess.run(
+        [sys.executable, str(EXPLANATION_SCRIPT), str(input_csv), str(output_csv)],
+        capture_output=True,
+        text=True,
+        cwd=REPO_ROOT,
+    )
+    if result.returncode != 0:
+        print(f"Error generating explanations: {result.stderr}")
+        return None
+
+    if output_csv.exists():
+        print(f"Explanations saved to: {output_csv}")
+        return output_csv
+
+    print(f"[WARN] Explanation CSV not found at {output_csv}")
+    return None
 
 def load_and_match_predictions(dl_file, kl_file):
     """
@@ -200,7 +305,7 @@ def load_and_match_predictions(dl_file, kl_file):
         print(f"Error loading/matching predictions: {e}")
         return None
 
-def apply_soz_logic(merged_df):
+def apply_soz_logic(merged_df, explanation_map: Optional[Dict[int, str]] = None):
     """
     Apply the SOZ logic to matched predictions
     """
@@ -238,6 +343,7 @@ def apply_soz_logic(merged_df):
             conf3 = f"{prob_class_3:.3f}" if prob_class_3 is not None else "N/A"
             reason = f"DL={dl_label}, KL={kl_prediction}, conf_1={conf1}, conf_3={conf3}"
         
+        explanation = explanation_map.get(int(ic_num)) if explanation_map else None
         soz_results.append({
             'IC': ic_num,
             'DL_Label': dl_label,
@@ -245,7 +351,8 @@ def apply_soz_logic(merged_df):
             'Prob_Class_1': prob_class_1,
             'Prob_Class_3': prob_class_3,
             'SOZ': soz,
-            'Reason': reason
+            'Reason': reason,
+            'Explanation': explanation
         })
 
         conf1 = f"{prob_class_1:.3f}" if prob_class_1 is not None else "N/A"
@@ -345,6 +452,7 @@ def main():
     """
     Main pipeline execution
     """
+    global WORKSPACE_FILE
     print("EXPERT KNOWLEDGE INTEGRATOR - PIPELINE")
     print("=" * 60)
     print(f"Case root: {CASE_ROOT_DIR}")
@@ -361,21 +469,56 @@ def main():
     if dl_file is None:
         print("Failed to run CNN evaluation. Exiting.", file=sys.stderr)
         sys.exit(1)
-    
-    # Step 2: Run inference
+
+    # Step 2: Generate workspace MAT file (VoxelInfoNewWhite), unless it already exists
+    workspace_output_dir = Path(WORKSPACE_ROOT_DIR)
+    workspace_output_dir.mkdir(parents=True, exist_ok=True)
+    workspace_output = workspace_output_dir / f"Workspace-{CASE_ID}V4.mat"
+    existing_workspace = None
+    repo_workspace = REPO_ROOT / f"Workspace-{CASE_ID}V4.mat"
+    if WORKSPACE_FILE:
+        candidate = Path(WORKSPACE_FILE)
+        if candidate.exists():
+            existing_workspace = candidate
+    if workspace_output.exists():
+        existing_workspace = workspace_output
+    if repo_workspace.exists():
+        existing_workspace = repo_workspace
+
+    if existing_workspace:
+        print(f"[INFO] Using existing workspace file: {existing_workspace}")
+        WORKSPACE_FILE = str(existing_workspace)
+    else:
+        generated_workspace = run_voxelinfo(workspace_output)
+        if generated_workspace:
+            WORKSPACE_FILE = str(generated_workspace)
+
+    # Step 3: Run inference
     kl_file = run_inference()
     if kl_file is None:
         print("Failed to run knowledge inference. Exiting.", file=sys.stderr)
         sys.exit(1)
-    
-    # Step 3: Load and match predictions
+
+    # Step 4: Generate IC explanations from features
+    explanations_file = run_explanations(FEATURES_OUTPUT_CSV, EXPLANATIONS_OUTPUT_CSV)
+    explanation_map = {}
+    if explanations_file and explanations_file.exists():
+        try:
+            exp_df = pd.read_csv(explanations_file)
+            for _, row in exp_df.iterrows():
+                explanation_map[int(row["IC"])] = row.get("explanation")
+        except Exception as exc:
+            print(f"[WARN] Unable to load explanations: {exc}")
+            explanation_map = {}
+
+    # Step 5: Load and match predictions
     merged_df = load_and_match_predictions(dl_file, kl_file)
     if merged_df is None:
         print("Failed to load/match predictions. Exiting.", file=sys.stderr)
         sys.exit(1)
-    
-    # Step 4: Apply SOZ logic
-    soz_results = apply_soz_logic(merged_df)
+
+    # Step 6: Apply SOZ logic
+    soz_results = apply_soz_logic(merged_df, explanation_map=explanation_map)
     
     # Step 5: Final result
     print("\n" + "=" * 60)

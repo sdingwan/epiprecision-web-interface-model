@@ -11,10 +11,13 @@ __pycache__/
 # Pipeline outputs & uploads
 final/uploads/
 final/pipeline_results.csv
+final/ic_explanations.csv
+final/ic_trainingdata_from_mat.csv
 final/pipeline_results.json
 final/analysis_summary.json
 final/predictions_*.csv
 final/dbscan_outputs/
 final/dbscan_outputs.json
 final/CNN_modelTrainedPCH/
+final/trained_model.joblib
 Workspace-*.mat

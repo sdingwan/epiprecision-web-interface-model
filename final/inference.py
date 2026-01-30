@@ -8,6 +8,7 @@ Environment variables (optional):
   WORKSPACE_FILE         - Explicit path to workspace .mat file
   TRAINED_MODEL_PATH     - Path to trained_model.joblib (defaults to final/trained_model.joblib)
   KNOWLEDGE_OUTPUT_CSV   - Output CSV path (defaults to final/predictions_ASUAI_001.csv)
+  KNOWLEDGE_FEATURES_CSV - Optional CSV for per-IC feature export (WhiteOverlapCnt, BigClusterCnt, GiniS, GiniI)
 
 Requirements:
     pip install numpy scipy pandas scikit-learn imbalanced-learn pywavelets joblib
@@ -32,6 +33,7 @@ BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_SUBJECT_DIR = BASE_DIR / "ASUAI_001"
 DEFAULT_MODEL_PATH = BASE_DIR / "trained_model.joblib"
 DEFAULT_OUTPUT_CSV = BASE_DIR / "predictions_ASUAI_001.csv"
+DEFAULT_FEATURES_CSV = BASE_DIR / "ic_trainingdata_from_mat.csv"
 
 
 # ---------------------------------------------------------------------------
@@ -291,6 +293,7 @@ def predict_subject(
     workspace_root=None,
     workspace_override=None,
     pixel_limit_default=50,
+    features_output_csv=None,
 ):
     """
     Make predictions for a single subject using the trained model.
@@ -312,6 +315,27 @@ def predict_subject(
         workspace_root=workspace_root,
         workspace_override=workspace_override,
     )
+
+    # Optional: export per-IC feature table for explanations
+    if features_output_csv:
+        features_output_csv = Path(features_output_csv)
+        feature_df = pd.DataFrame(
+            {
+                "IC": features["filename_numbers"].astype(int),
+                "WhiteOverlapCnt": features["white_overlap"],
+                "BigClusterCnt": features["big_clusters"],
+                "GiniS": features["GiniS"],
+                "GiniI": features["GiniI"],
+            }
+        )
+        feature_path = (
+            features_output_csv
+            if features_output_csv.is_absolute()
+            else (BASE_DIR / features_output_csv)
+        )
+        feature_path.parent.mkdir(parents=True, exist_ok=True)
+        feature_df.to_csv(feature_path, index=False)
+        print(f"Feature export saved to: {feature_path}")
 
     # Prepare feature matrix
     X = np.column_stack(
@@ -366,6 +390,7 @@ def main():
     workspace_root = os.environ.get("WORKSPACE_ROOT_DIR")
     workspace_override = os.environ.get("WORKSPACE_FILE")
     output_csv = Path(os.environ.get("KNOWLEDGE_OUTPUT_CSV", DEFAULT_OUTPUT_CSV))
+    features_csv = os.environ.get("KNOWLEDGE_FEATURES_CSV")
 
     try:
         results = predict_subject(
@@ -373,6 +398,7 @@ def main():
             model_path=model_path,
             workspace_root=workspace_root,
             workspace_override=workspace_override,
+            features_output_csv=features_csv,
         )
 
         output_path = output_csv if output_csv.is_absolute() else (BASE_DIR / output_csv)

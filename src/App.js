@@ -172,19 +172,20 @@ const FileProvider = ({ children }) => {
         usedIcSet.add(icNumber);
 
         let aiCategory = 'rsn';
-        let aiExplanation = 'Deep learning label suggests resting state network.';
+        let aiExplanation = analysis.explanation || analysis.reason || 'Deep learning label suggests resting state network.';
 
         if (analysis.isSoz) {
           aiCategory = 'soz';
           aiExplanation =
-            analysis.reason || 'Pipeline flagged this component as SOZ.';
+            analysis.explanation || analysis.reason || 'Pipeline flagged this component as SOZ.';
         } else if (analysis.dlLabel === 0 || analysis.klPrediction === 3) {
           aiCategory = 'noise';
           aiExplanation =
-            analysis.reason || 'Pipeline labelled this component as noise.';
+            analysis.explanation || analysis.reason || 'Pipeline labelled this component as noise.';
         } else {
           aiCategory = 'rsn';
           aiExplanation =
+            analysis.explanation ||
             analysis.reason ||
             'Pipeline labelled this component as resting-state / non-SOZ.';
         }

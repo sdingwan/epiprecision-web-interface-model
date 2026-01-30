@@ -61,10 +61,12 @@ const runWithExecutable = (executable, env) =>
 
     child.stdout.on('data', (data) => {
       stdout += data.toString();
+      process.stdout.write(data);
     });
 
     child.stderr.on('data', (data) => {
       stderr += data.toString();
+      process.stderr.write(data);
     });
 
     child.on('error', (error) => {
@@ -325,6 +327,7 @@ module.exports = function setupProxy(app) {
             : Number(entry.Prob_Class_3),
         isSoz: Boolean(entry.SOZ),
         reason: entry.Reason,
+        explanation: entry.Explanation,
         dbscanImage: dbscanMap.get(Number(entry.IC)) || null,
       }));
 
